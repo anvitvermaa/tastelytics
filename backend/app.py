@@ -344,6 +344,54 @@ def handler(event, context):
             )
             return cors_response(200, {"message": "Playlist deleted"})
 
+        # ─── SPOTIFY OAUTH & TASTE ANALYSIS ───
+        elif http_method == 'POST' and path == '/auth/spotify':
+            body = json.loads(event.get('body', '{}'))
+            code = body.get('code')
+            redirect_uri = body.get('redirect_uri')
+            if not code or not redirect_uri:
+                return cors_response(400, {"error": "Missing code or redirect_uri"})
+            
+            auth_str = f"{SPOTIFY_CLIENT_ID}:{SPOTIFY_CLIENT_SECRET}"
+            b64_auth_str = base64.b64encode(auth_str.encode()).decode()
+            headers = {"Authorization": f"Basic {b64_auth_str}", "Content-Type": "application/x-www-form-urlencoded"}
+            data = {"grant_type": "authorization_code", "code": code, "redirect_uri": redirect_uri}
+            response = requests.post("https://accounts.spotify.com/api/token", headers=headers, data=data)
+            if response.status_code != 200:
+                print("Spotify Auth Error:", response.text)
+                return cors_response(response.status_code, {"error": "Failed to exchange token"})
+            return cors_response(200, response.json())
+
+        elif http_method == 'GET' and path == '/spotify/analysis':
+            token = query_params.get('token')
+            if not token:
+                return cors_response(400, {"error": "Missing Spotify token"})
+            headers = {"Authorization": f"Bearer {token}"}
+            
+            # Fetch Top Artists
+            artists_resp = requests.get("https://api.spotify.com/v1/me/top/artists?time_range=medium_term&limit=20", headers=headers)
+            if artists_resp.status_code != 200:
+                return cors_response(artists_resp.status_code, {"error": "Failed to fetch artists"})
+            top_artists = artists_resp.json().get("items", [])
+            
+            # Fetch Top Tracks
+            tracks_resp = requests.get("https://api.spotify.com/v1/me/top/tracks?time_range=medium_term&limit=20", headers=headers)
+            top_tracks = tracks_resp.json().get("items", []) if tracks_resp.status_code == 200 else []
+            
+            # Aggregate Genres
+            genre_counts = {}
+            for artist in top_artists:
+                for genre in artist.get("genres", []):
+                    genre_counts[genre] = genre_counts.get(genre, 0) + 1
+            sorted_genres = sorted(genre_counts.items(), key=lambda x: x[1], reverse=True)
+            top_genres = [g[0] for g in sorted_genres[:10]]
+            
+            return cors_response(200, {
+                "top_artists": top_artists,
+                "top_tracks": top_tracks,
+                "top_genres": top_genres
+            })
+
         # ─── HOME FEED ───
         elif http_method == 'GET' and path == '/feed':
             genres = query_params.get('genres', 'pop')

@@ -24,6 +24,23 @@ export default function Dashboard() {
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
 
   useEffect(() => {
+    // Check for Spotify Auth Code
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    if (code) {
+      setFeedLoading(true);
+      fetch(`${API}/auth/spotify`, {
+        method: 'POST',
+        body: JSON.stringify({ code, redirect_uri: window.location.origin + '/' })
+      }).then(r => r.json()).then(data => {
+        if (data.access_token) {
+          localStorage.setItem('tastelytics_spotify_token', data.access_token);
+          setView('analysis');
+        }
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }).catch(console.error).finally(() => setFeedLoading(false));
+    }
+
     const genres = profile.favorite_genres || 'pop';
     Promise.all([
       fetch(`${API}/feed?genres=${encodeURIComponent(genres)}`).then(r=>r.json()).catch(()=>({})),
@@ -83,9 +100,9 @@ export default function Dashboard() {
               <h2 className="text-4xl font-extrabold text-brand-500 uppercase tracking-tighter" style={{ textShadow: '2px 2px 0px #000' }}>Tastelytics</h2>
             </div>
             <nav className="flex gap-3">
-              {[['home','Home'],['search','Search'],['library','Library']].map(([key,label])=>(
+              {[['home','Home'],['search','Search'],['library','Library'],['analysis','Analysis']].map(([key,label])=>(
                 <button key={key} onClick={()=>nav(key)}
-                  className={`px-4 py-1 font-bold text-sm border-2 border-black ${view===key||(!['home','search','library'].includes(view)&&key==='home')?'bg-white text-black shadow-[inset_2px_2px_0_0_#808080]':'bg-dark-800 text-black shadow-[inset_2px_2px_0_0_#FFFFFF,inset_-2px_-2px_0_0_#808080]'} active:shadow-[inset_2px_2px_0_0_#808080] active:bg-white`}>
+                  className={`px-4 py-1 font-bold text-sm border-2 border-black ${view===key||(!['home','search','library','analysis'].includes(view)&&key==='home')?'bg-white text-black shadow-[inset_2px_2px_0_0_#808080]':'bg-dark-800 text-black shadow-[inset_2px_2px_0_0_#FFFFFF,inset_-2px_-2px_0_0_#808080]'} active:shadow-[inset_2px_2px_0_0_#808080] active:bg-white`}>
                   {label}
                 </button>
               ))}
@@ -110,6 +127,7 @@ export default function Dashboard() {
           {view === 'artist' && selectedArtist && <ArtistPage artist={selectedArtist} onBack={()=>nav('home')} onArtist={a=>{setSelectedArtist(a);}} onAlbum={a=>{setSelectedAlbum(a);setView('album');}} onReview={setReviewTrack} onPlaylist={setPlaylistTrack}/>}
           {view === 'album' && selectedAlbum && <AlbumPage album={selectedAlbum} onBack={()=>selectedArtist?setView('artist'):nav('home')} onArtist={a=>{setSelectedArtist(a);setView('artist');}} onReview={setReviewTrack} onPlaylist={setPlaylistTrack}/>}
           {view === 'library' && <LibraryView/>}
+          {view === 'analysis' && <AnalysisView onReview={setReviewTrack} onPlaylist={setPlaylistTrack} onArtist={a=>{setSelectedArtist(a);setView('artist');}}/>}
         </main>
 
         {/* Right Widget Column */}
@@ -514,6 +532,105 @@ function LibraryView() {
             </div>
           ))}
         </div>}
+    </div>
+  );
+}
+
+/* ─── ANALYSIS VIEW ─── */
+function AnalysisView({ onReview, onPlaylist, onArtist }) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    const token = localStorage.getItem('tastelytics_spotify_token');
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+    fetch(`${API}/spotify/analysis?token=${token}`)
+      .then(r => r.json())
+      .then(d => {
+        if (d.error) {
+          localStorage.removeItem('tastelytics_spotify_token');
+          setData(null);
+        } else {
+          setData(d);
+        }
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  const connectSpotify = () => {
+    const clientId = '8acd7efe5e9749dc9ad9a39ba4faa007';
+    const redirectUri = window.location.origin + '/';
+    const scope = 'user-top-read';
+    window.location.href = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}`;
+  };
+
+  if (loading) return <Spinner />;
+
+  if (!data) {
+    return (
+      <div className="win95-window max-w-xl mx-auto mt-10 text-center">
+        <div className="win95-titlebar"><span>SPOTIFY_CONNECT.EXE</span></div>
+        <div className="p-8 bg-dark-800 flex flex-col items-center">
+          <Disc3 size={64} className="text-brand-500 mb-6 animate-spin-slow" />
+          <h2 className="text-2xl font-extrabold text-black uppercase tracking-widest mb-4">Analyze Your Taste</h2>
+          <p className="text-dark-700 font-bold mb-8">Connect your Spotify account to generate a personalized taste profile based on your actual listening history.</p>
+          <button onClick={connectSpotify} className="win95-button px-6 py-3 text-lg">
+            <Music size={20} className="mr-2"/> CONNECT TO SPOTIFY
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-10">
+      <div className="bg-brand-500 border-[4px] border-dark-700 shadow-retro p-6 inline-block mb-4 text-white">
+        <h1 className="text-5xl font-extrabold mb-2 uppercase tracking-tighter" style={{ textShadow: '3px 3px 0px #000' }}>YOUR TASTE PROFILE</h1>
+        <p className="text-sm font-extrabold bg-white text-black inline-block px-2 border-2 border-dark-700 uppercase tracking-widest">Based on your recent listening history.</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="win95-window">
+          <div className="win95-titlebar"><span>TOP_GENRES.DAT</span></div>
+          <div className="p-4 bg-dark-800">
+            <div className="flex flex-wrap gap-2">
+              {data.top_genres?.map((g, i) => (
+                <span key={i} className="win95-inset px-3 py-1 font-mono font-bold text-sm text-[#0000A0] uppercase border-[2px] border-dark-700">
+                  #{i+1} {g}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="win95-window">
+          <div className="win95-titlebar"><span>TOP_ARTISTS.LST</span></div>
+          <div className="p-4 bg-dark-800 flex flex-col gap-3">
+            {data.top_artists?.slice(0, 5).map((a, i) => (
+              <div key={a.id} className="flex items-center gap-4 win95-inset p-2 border-[2px] border-dark-700 cursor-pointer hover:bg-yellow-100" onClick={() => onArtist(a)}>
+                <span className="font-extrabold text-xl text-dark-600 w-6 text-center">{i+1}</span>
+                {a.images?.[0] && <img src={a.images[0].url} className="w-12 h-12 object-cover border-2 border-black" alt=""/>}
+                <div className="flex-1 min-w-0">
+                  <p className="text-black font-extrabold uppercase truncate">{a.name}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="win95-window">
+        <div className="win95-titlebar"><span>TOP_TRACKS.LST</span></div>
+        <div className="p-4 bg-dark-800 space-y-2">
+          {data.top_tracks?.slice(0, 10).map((t, i) => (
+             <TrackRow key={t.id} track={t} onReview={onReview} onPlaylist={onPlaylist} />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
