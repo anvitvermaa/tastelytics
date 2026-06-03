@@ -31,6 +31,7 @@ export default function Dashboard() {
       setFeedLoading(true);
       fetch(`${API}/auth/spotify`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code, redirect_uri: window.location.origin + '/' })
       }).then(r => r.json()).then(data => {
         if (data.access_token) {
@@ -540,6 +541,7 @@ function LibraryView() {
 function AnalysisView({ onReview, onPlaylist, onArtist }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [timeRange, setTimeRange] = useState('medium_term');
   
   useEffect(() => {
     const token = localStorage.getItem('tastelytics_spotify_token');
@@ -547,7 +549,8 @@ function AnalysisView({ onReview, onPlaylist, onArtist }) {
       setLoading(false);
       return;
     }
-    fetch(`${API}/spotify/analysis?token=${token}`)
+    setLoading(true);
+    fetch(`${API}/spotify/analysis?token=${token}&time_range=${timeRange}`)
       .then(r => r.json())
       .then(d => {
         if (d.error) {
@@ -559,7 +562,7 @@ function AnalysisView({ onReview, onPlaylist, onArtist }) {
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []);
+  }, [timeRange]);
 
   const connectSpotify = () => {
     const clientId = '8acd7efe5e9749dc9ad9a39ba4faa007';
@@ -588,9 +591,23 @@ function AnalysisView({ onReview, onPlaylist, onArtist }) {
 
   return (
     <div className="space-y-10">
-      <div className="bg-brand-500 border-[4px] border-dark-700 shadow-retro p-6 inline-block mb-4 text-white">
-        <h1 className="text-5xl font-extrabold mb-2 uppercase tracking-tighter" style={{ textShadow: '3px 3px 0px #000' }}>YOUR TASTE PROFILE</h1>
-        <p className="text-sm font-extrabold bg-white text-black inline-block px-2 border-2 border-dark-700 uppercase tracking-widest">Based on your recent listening history.</p>
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div className="bg-brand-500 border-[4px] border-dark-700 shadow-retro p-6 inline-block text-white">
+          <h1 className="text-5xl font-extrabold mb-2 uppercase tracking-tighter" style={{ textShadow: '3px 3px 0px #000' }}>YOUR TASTE PROFILE</h1>
+          <p className="text-sm font-extrabold bg-white text-black inline-block px-2 border-2 border-dark-700 uppercase tracking-widest">Based on your actual listening history.</p>
+        </div>
+        <div className="flex items-center gap-3 bg-dark-800 border-[3px] border-dark-700 shadow-[2px_2px_0_0_#000] p-2">
+          <label className="font-bold text-black text-sm uppercase tracking-widest whitespace-nowrap">Time Range:</label>
+          <select 
+            value={timeRange} 
+            onChange={e => setTimeRange(e.target.value)} 
+            className="win95-inset border-[2px] border-dark-700 font-bold p-1 bg-white cursor-pointer"
+          >
+            <option value="short_term">Last 4 Weeks</option>
+            <option value="medium_term">Last 6 Months</option>
+            <option value="long_term">All Time</option>
+          </select>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

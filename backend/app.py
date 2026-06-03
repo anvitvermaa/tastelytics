@@ -364,18 +364,19 @@ def handler(event, context):
 
         elif http_method == 'GET' and path == '/spotify/analysis':
             token = query_params.get('token')
+            time_range = query_params.get('time_range', 'medium_term')
             if not token:
                 return cors_response(400, {"error": "Missing Spotify token"})
             headers = {"Authorization": f"Bearer {token}"}
             
             # Fetch Top Artists
-            artists_resp = requests.get("https://api.spotify.com/v1/me/top/artists?time_range=medium_term&limit=20", headers=headers)
+            artists_resp = requests.get(f"https://api.spotify.com/v1/me/top/artists?time_range={time_range}&limit=20", headers=headers)
             if artists_resp.status_code != 200:
                 return cors_response(artists_resp.status_code, {"error": "Failed to fetch artists"})
             top_artists = artists_resp.json().get("items", [])
             
             # Fetch Top Tracks
-            tracks_resp = requests.get("https://api.spotify.com/v1/me/top/tracks?time_range=medium_term&limit=20", headers=headers)
+            tracks_resp = requests.get(f"https://api.spotify.com/v1/me/top/tracks?time_range={time_range}&limit=20", headers=headers)
             top_tracks = tracks_resp.json().get("items", []) if tracks_resp.status_code == 200 else []
             
             # Aggregate Genres
