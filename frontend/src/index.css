@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-500: #1DB954; /* Spotify green accent */
+  --color-brand-600: #1ed760;
+  --color-dark-900: #121212;
+  --color-dark-800: #181818;
+  --color-dark-700: #282828;
+  --color-dark-600: #3E3E3E;
+  --color-dark-500: #535353;
+  --color-dark-400: #B3B3B3;
+  --color-dark-100: #FFFFFF;
+}
+
+@layer base {
+  body {
+    @apply bg-dark-900 text-dark-100 font-sans;
+  }
+}

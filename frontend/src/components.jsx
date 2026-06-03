@@ -1,0 +1,182 @@
+import React, { useState, useEffect } from 'react';
+import { Star, X, Plus, Music, PlusCircle, MessageCircle, ExternalLink } from 'lucide-react';
+
+const API = "https://ny8zhk2zga.execute-api.us-east-1.amazonaws.com/prod";
+
+export function getUserId() {
+  return localStorage.getItem('tastelytics_uid') || 'anonymous';
+}
+
+export function Stars({ rating, onRate, size = 16 }) {
+  return (
+    <div className="flex gap-1">
+      {[1,2,3,4,5].map(i => (
+        <Star key={i} size={size} onClick={() => onRate?.(i)}
+          className={`${onRate ? 'cursor-pointer hover:scale-125' : ''} transition-transform ${i <= rating ? 'text-yellow-400' : 'text-dark-600'}`}
+          fill={i <= rating ? 'currentColor' : 'none'} />
+      ))}
+    </div>
+  );
+}
+
+export function ReviewModal({ track, onClose }) {
+  const [rating, setRating] = useState(0);
+  const [text, setText] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [done, setDone] = useState(false);
+  const profile = JSON.parse(localStorage.getItem('tastelytics_profile') || '{}');
+
+  const submit = async () => {
+    if (!rating) return;
+    setSubmitting(true);
+    try {
+      await fetch(`${API}/reviews`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          track_id: track.id, rating, review_text: text,
+          user_id: getUserId(), user_name: profile.name || 'Anonymous',
+          track_name: track.name, artist_name: track.artists?.[0]?.name || '',
+          album_art: track.album?.images?.[0]?.url || ''
+        })
+      });
+      setDone(true);
+      setTimeout(onClose, 1200);
+    } catch(e) { console.error(e); }
+    setSubmitting(false);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-dark-800 border border-dark-600/50 rounded-2xl p-8 max-w-md w-full" onClick={e => e.stopPropagation()}>
+        <div className="flex justify-between items-start mb-6">
+          <h2 className="text-xl font-bold text-white">Write a Review</h2>
+          <button onClick={onClose} className="text-dark-400 hover:text-white"><X size={20}/></button>
+        </div>
+        <div className="flex gap-4 mb-6">
+          <img src={track.album?.images?.[0]?.url} className="w-16 h-16 rounded-lg" alt="" />
+          <div className="min-w-0">
+            <p className="text-white font-bold truncate">{track.name}</p>
+            <p className="text-dark-400 text-sm">{track.artists?.[0]?.name}</p>
+          </div>
+        </div>
+        {done ? (
+          <div className="text-center py-8"><p className="text-brand-500 text-lg font-bold">✓ Review submitted!</p></div>
+        ) : (<>
+          <div className="mb-4"><p className="text-dark-400 text-sm mb-2">Rating</p><Stars rating={rating} onRate={setRating} size={28}/></div>
+          <textarea value={text} onChange={e=>setText(e.target.value)} rows={3} placeholder="Share your thoughts..."
+            className="w-full bg-dark-900/50 text-white placeholder-dark-500 p-3 rounded-xl border border-dark-600/50 focus:outline-none focus:border-brand-500 mb-4 resize-none"/>
+          <button onClick={submit} disabled={!rating || submitting}
+            className="w-full bg-brand-500 disabled:bg-dark-700 disabled:text-dark-500 text-dark-900 font-bold py-3 rounded-xl hover:bg-brand-600 transition-all">
+            {submitting ? 'Submitting...' : 'Submit Review'}
+          </button>
+        </>)}
+      </div>
+    </div>
+  );
+}
+
+export function PlaylistModal({ track, onClose }) {
+  const [playlists, setPlaylists] = useState([]);
+  const [newName, setNewName] = useState('');
+  const [creating, setCreating] = useState(false);
+  const uid = getUserId();
+
+  useEffect(() => {
+    fetch(`${API}/playlists?user_id=${uid}`).then(r=>r.json()).then(d=>setPlaylists(d.playlists||[])).catch(()=>{});
+  }, []);
+
+  const createPlaylist = async () => {
+    if (!newName) return;
+    setCreating(true);
+    const res = await fetch(`${API}/playlists`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:uid,name:newName})});
+    const d = await res.json();
+    setPlaylists([...playlists, d.playlist]);
+    setNewName('');
+    setCreating(false);
+  };
+
+  const addTrack = async (pl) => {
+    await fetch(`${API}/playlists`, {method:'PUT',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({user_id:uid,playlist_id:pl.PlaylistID,track:{id:track.id,name:track.name,artist:track.artists?.[0]?.name,image:track.album?.images?.[0]?.url}})
+    });
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-dark-800 border border-dark-600/50 rounded-2xl p-8 max-w-sm w-full" onClick={e=>e.stopPropagation()}>
+        <div className="flex justify-between items-start mb-6">
+          <h2 className="text-xl font-bold text-white">Add to Playlist</h2>
+          <button onClick={onClose} className="text-dark-400 hover:text-white"><X size={20}/></button>
+        </div>
+        <div className="flex gap-2 mb-4">
+          <input value={newName} onChange={e=>setNewName(e.target.value)} placeholder="New playlist name..."
+            className="flex-1 bg-dark-900/50 text-white placeholder-dark-500 px-3 py-2 rounded-lg border border-dark-600/50 focus:outline-none focus:border-brand-500 text-sm"/>
+          <button onClick={createPlaylist} disabled={creating} className="bg-brand-500 text-dark-900 font-bold px-4 py-2 rounded-lg text-sm hover:bg-brand-600"><Plus size={16}/></button>
+        </div>
+        <div className="space-y-2 max-h-60 overflow-y-auto">
+          {playlists.map(pl => (
+            <button key={pl.PlaylistID} onClick={()=>addTrack(pl)}
+              className="w-full text-left bg-dark-700/50 hover:bg-dark-600/50 text-white p-3 rounded-lg flex items-center gap-3 transition-colors">
+              <Music size={16} className="text-brand-500 shrink-0"/><span className="truncate text-sm">{pl.Name}</span>
+            </button>
+          ))}
+          {!playlists.length && <p className="text-dark-500 text-sm text-center py-4">No playlists yet. Create one above!</p>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function ReviewsPanel({ trackId }) {
+  const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    fetch(`${API}/reviews/track/${trackId}`).then(r=>r.json()).then(d=>{setReviews(d.reviews||[]);setLoading(false);}).catch(()=>setLoading(false));
+  }, [trackId]);
+  if (loading) return <div className="py-3 pl-16"><div className="w-5 h-5 border-2 border-brand-500 border-t-transparent rounded-full animate-spin"/></div>;
+  if (!reviews.length) return <p className="text-dark-500 text-xs pl-16 py-2">No reviews yet. Be the first!</p>;
+  return (
+    <div className="pl-16 pr-4 pb-3 space-y-3">
+      {reviews.slice(0,5).map((r,i) => (
+        <div key={i} className="bg-dark-800/60 rounded-lg p-3 border border-dark-700/40">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-white text-xs font-bold">{r.UserName||'Anonymous'}</span>
+            <Stars rating={Number(r.Rating)||0} size={12}/>
+          </div>
+          {r.ReviewText && <p className="text-dark-400 text-xs leading-relaxed">{r.ReviewText}</p>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function TrackRow({ track, onReview, onPlaylist }) {
+  const [showReviews, setShowReviews] = useState(false);
+  const img = track.album?.images?.[2]?.url || track.album?.images?.[0]?.url;
+  const spotifyUrl = `https://open.spotify.com/track/${track.id}`;
+  return (
+    <div>
+      <div className="flex items-center gap-4 p-3 rounded-xl hover:bg-dark-700/40 transition-colors group">
+        <img src={img} className="w-12 h-12 rounded-lg shrink-0" alt=""/>
+        <div className="flex-1 min-w-0">
+          <p className="text-white font-semibold truncate text-sm">{track.name}</p>
+          <p className="text-dark-400 text-xs truncate">{track.artists?.map(a=>a.name).join(', ')}</p>
+        </div>
+        <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+          <a href={spotifyUrl} target="_blank" rel="noopener noreferrer" className="text-dark-400 hover:text-brand-500 p-1.5 rounded-lg hover:bg-dark-600/50" title="Open in Spotify"><ExternalLink size={16}/></a>
+          <button onClick={()=>setShowReviews(!showReviews)} className="text-dark-400 hover:text-brand-500 p-1.5 rounded-lg hover:bg-dark-600/50" title="Reviews"><MessageCircle size={16}/></button>
+          <button onClick={()=>onPlaylist(track)} className="text-dark-400 hover:text-white p-1.5 rounded-lg hover:bg-dark-600/50" title="Add to playlist"><PlusCircle size={16}/></button>
+          <button onClick={()=>onReview(track)} className="text-dark-400 hover:text-yellow-400 p-1.5 rounded-lg hover:bg-dark-600/50" title="Write review"><Star size={16}/></button>
+        </div>
+      </div>
+      {showReviews && <ReviewsPanel trackId={track.id}/>}
+    </div>
+  );
+}
+
+export function Spinner() {
+  return <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin"/></div>;
+}
+
+export { API };

@@ -1,0 +1,2 @@
+BUCKET=tastelyticsstack-frontendbucketefe2e19c-wsfa8i0wng0d
+URL=https://d36b12rj7f0r2u.cloudfront.net
