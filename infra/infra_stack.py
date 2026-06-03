@@ -222,6 +222,16 @@ class TastelyticsStack(Stack):
         profile_resource.add_method("GET", lambda_integration)
         profile_resource.add_method("POST", lambda_integration)
 
+        # Auth Routes
+        auth_resource = api.root.add_resource("auth")
+        auth_spotify = auth_resource.add_resource("spotify")
+        auth_spotify.add_method("POST", lambda_integration)
+        
+        # Spotify Routes
+        spotify_resource = api.root.add_resource("spotify")
+        spotify_analysis = spotify_resource.add_resource("analysis")
+        spotify_analysis.add_method("GET", lambda_integration)
+
         repo = codecommit.Repository(
             self, "TastelyticsRepo",
             repository_name="TastelyticsBackend"
