@@ -37,9 +37,14 @@ export default function Dashboard() {
         if (data.access_token) {
           localStorage.setItem('tastelytics_spotify_token', data.access_token);
           setView('analysis');
+        } else {
+          alert('Spotify Authentication Failed: ' + JSON.stringify(data));
         }
         window.history.replaceState({}, document.title, window.location.pathname);
-      }).catch(console.error).finally(() => setFeedLoading(false));
+      }).catch(err => {
+        console.error(err);
+        alert('Failed to reach authentication server: ' + err.message);
+      }).finally(() => setFeedLoading(false));
     }
 
     const genres = profile.favorite_genres || 'pop';
@@ -554,13 +559,16 @@ function AnalysisView({ onReview, onPlaylist, onArtist }) {
       .then(r => r.json())
       .then(d => {
         if (d.error) {
+          console.error("Spotify Data Error:", d.error);
           localStorage.removeItem('tastelytics_spotify_token');
           setData(null);
         } else {
           setData(d);
         }
       })
-      .catch(console.error)
+      .catch(err => {
+        console.error("Fetch Data Error:", err);
+      })
       .finally(() => setLoading(false));
   }, [timeRange]);
 

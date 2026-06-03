@@ -305,9 +305,9 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/" element={authStatus === 'authenticated' ? <Navigate to={needsOnboarding ? '/onboarding' : '/dashboard'} replace /> : <Login />} />
-      <Route path="/onboarding" element={authStatus === 'authenticated' ? (needsOnboarding ? <Onboarding /> : <Navigate to="/dashboard" replace />) : <Navigate to="/" replace />} />
-      <Route path="/dashboard" element={authStatus === 'authenticated' ? (needsOnboarding ? <Navigate to="/onboarding" replace /> : <Dashboard />) : <Navigate to="/" replace />} />
+      <Route path="/" element={authStatus === 'authenticated' ? <Navigate to={(needsOnboarding ? '/onboarding' : '/dashboard') + window.location.search} replace /> : <Login />} />
+      <Route path="/onboarding" element={authStatus === 'authenticated' ? (needsOnboarding ? <Onboarding /> : <Navigate to={"/dashboard" + window.location.search} replace />) : <Navigate to="/" replace />} />
+      <Route path="/dashboard" element={authStatus === 'authenticated' ? (needsOnboarding ? <Navigate to={"/onboarding" + window.location.search} replace /> : <Dashboard />) : <Navigate to="/" replace />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
