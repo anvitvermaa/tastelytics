@@ -78,12 +78,9 @@ function Login() {
 
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-dark-900 overflow-hidden text-dark-100 font-sans">
-      <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-brand-500/20 rounded-full blur-[120px] pointer-events-none"></div>
-      <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none"></div>
-
-      <div className="z-10 bg-dark-800/60 backdrop-blur-xl p-10 rounded-3xl shadow-2xl max-w-sm w-full border border-dark-600/50 flex flex-col items-center">
-        <div className="w-16 h-16 bg-gradient-to-br from-brand-500 to-brand-600 rounded-2xl mb-6 shadow-lg shadow-brand-500/30 flex items-center justify-center">
-          <PlayCircle size={32} className="text-dark-900" />
+      <div className="z-10 bg-dark-900 p-10 max-w-sm w-full flex flex-col items-center">
+        <div className="w-12 h-12 bg-white text-black mb-8 flex items-center justify-center">
+          <PlayCircle size={28} />
         </div>
 
         {view === 'choice' && (
@@ -91,11 +88,11 @@ function Login() {
             <h1 className="text-3xl font-extrabold tracking-tight text-white mb-2 text-center">Tastelytics</h1>
             <p className="text-dark-400 text-sm text-center font-medium mb-10">Minimalist music discovery.</p>
             <div className="flex flex-col gap-4 w-full">
-              <button onClick={() => setView('signup')} className="w-full bg-brand-500 text-dark-900 font-bold py-4 rounded-xl hover:bg-brand-600 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">
-                Create a new account
+              <button onClick={() => setView('signup')} className="w-full bg-white text-black font-bold py-3.5 hover:bg-gray-200 transition-colors">
+                Create Account
               </button>
-              <button onClick={() => setView('login')} className="w-full bg-dark-700 text-white font-bold py-4 rounded-xl hover:bg-dark-600 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">
-                Log into existing account
+              <button onClick={() => setView('login')} className="w-full bg-transparent text-white border border-dark-600 font-bold py-3.5 hover:border-white transition-colors">
+                Log In
               </button>
             </div>
           </div>
@@ -109,7 +106,7 @@ function Login() {
             <p className="text-dark-400 text-sm text-center font-medium mb-10">
               {view === 'signup' ? 'Create your new Tastelytics account.' : 'Log in to your existing account.'}
             </p>
-            <button onClick={handleGoogleLogin} className="w-full flex items-center justify-center gap-3 bg-white text-black font-semibold py-3.5 px-4 rounded-xl hover:bg-gray-100 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 ease-out shadow-sm">
+            <button onClick={handleGoogleLogin} className="w-full flex items-center justify-center gap-3 bg-white text-black font-semibold py-3.5 border border-transparent hover:bg-gray-200 transition-colors">
               <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google" />
               Continue with Google
             </button>
@@ -180,10 +177,10 @@ function Onboarding() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-dark-900 text-dark-100 font-sans p-6">
-      <div className="max-w-2xl w-full bg-dark-800/80 backdrop-blur-md p-10 rounded-3xl shadow-2xl border border-dark-700/50">
+      <div className="max-w-2xl w-full bg-dark-900 p-10 border border-dark-700/50">
         <div className="flex gap-2 mb-10 justify-center">
           {[1, 2, 3].map(i => (
-            <div key={i} className={`h-2 w-16 rounded-full transition-colors duration-500 ${step >= i ? 'bg-brand-500' : 'bg-dark-700'}`} />
+            <div key={i} className={`h-1 w-16 transition-colors duration-500 ${step >= i ? 'bg-white' : 'bg-dark-700'}`} />
           ))}
         </div>
 
@@ -213,7 +210,7 @@ function Onboarding() {
                 </div>
               </div>
             </div>
-            <button onClick={handleNextStep1} disabled={!profile.name || !profile.age} className="w-full bg-brand-500 disabled:bg-dark-700 disabled:text-dark-500 text-dark-900 font-bold py-4 px-6 rounded-xl transition-all duration-300 hover:bg-brand-600 flex justify-center items-center gap-2">
+            <button onClick={handleNextStep1} disabled={!profile.name || !profile.age} className="w-full bg-white disabled:bg-dark-700 disabled:text-dark-500 text-black font-bold py-3.5 px-6 transition-colors hover:bg-gray-200 flex justify-center items-center gap-2">
               Continue <ChevronRight size={20} />
             </button>
           </div>
@@ -233,7 +230,7 @@ function Onboarding() {
                 )
               })}
             </div>
-            <button onClick={handleNextStep2} disabled={selectedGenres.length === 0} className="w-full bg-brand-500 disabled:bg-dark-700 disabled:text-dark-500 text-dark-900 font-bold py-4 px-6 rounded-xl transition-all duration-300 hover:bg-brand-600 flex justify-center items-center gap-2">
+            <button onClick={handleNextStep2} disabled={selectedGenres.length === 0} className="w-full bg-white disabled:bg-dark-700 disabled:text-dark-500 text-black font-bold py-3.5 px-6 transition-colors hover:bg-gray-200 flex justify-center items-center gap-2">
               Continue <ChevronRight size={20} />
             </button>
           </div>
@@ -253,24 +250,20 @@ function Onboarding() {
                   {recommendedArtists.map(artist => {
                     const isSelected = selectedArtists.includes(artist.id);
                     return (
-                      <div key={artist.id} onClick={() => { if (isSelected) setSelectedArtists(selectedArtists.filter(id => id !== artist.id)); else setSelectedArtists([...selectedArtists, artist.id]); }} className="flex flex-col items-center gap-2 cursor-pointer group">
-                        <div className="relative">
-                          <img src={artist.images?.[0]?.url || 'https://via.placeholder.com/150'} className={`w-24 h-24 rounded-full object-cover transition-all duration-300 ${isSelected ? 'ring-4 ring-brand-500 opacity-50 scale-95' : 'group-hover:scale-105'}`} alt={artist.name} />
-                          {isSelected && (
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <CheckCircle2 className="text-brand-500 bg-black/50 rounded-full" size={32} />
-                            </div>
-                          )}
+                      <div key={artist.id}>
+                        <div className="relative group cursor-pointer" onClick={() => { if (isSelected) setSelectedArtists(selectedArtists.filter(id => id !== artist.id)); else setSelectedArtists([...selectedArtists, artist.id]); }}>
+                          <img src={artist.images?.[0]?.url} className={`w-full aspect-square object-cover transition-all duration-300 ${isSelected ? 'opacity-100' : 'opacity-60 grayscale hover:grayscale-0 hover:opacity-100'}`} alt={artist.name} />
+                          {isSelected && <div className="absolute inset-0 border-2 border-white pointer-events-none flex items-center justify-center bg-black/40"><CheckCircle2 className="text-white" size={32} /></div>}
                         </div>
-                        <span className={`text-xs font-bold text-center truncate w-full px-1 ${isSelected ? 'text-brand-500' : 'text-white'}`}>{artist.name}</span>
+                        <p className="text-center text-sm font-bold mt-3 truncate text-white">{artist.name}</p>
                       </div>
                     )
                   })}
                 </div>
               </div>
             )}
-            <button onClick={finishOnboarding} disabled={isLoading} className="w-full bg-brand-500 disabled:bg-dark-700 disabled:text-dark-500 text-dark-900 font-bold py-4 px-6 rounded-xl transition-all duration-300 hover:bg-brand-600 flex justify-center items-center gap-2 mt-auto">
-              {isLoading ? 'Saving...' : 'Finish Setup'}
+            <button onClick={finishOnboarding} disabled={selectedArtists.length === 0 || isLoading} className="w-full bg-white disabled:bg-dark-700 disabled:text-dark-500 text-black font-bold py-3.5 px-6 transition-colors hover:bg-gray-200 flex justify-center items-center gap-2 mt-auto shrink-0">
+              {isLoading ? 'Setting up your library...' : 'Finish Onboarding'}
             </button>
           </div>
         )}

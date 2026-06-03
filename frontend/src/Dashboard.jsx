@@ -59,9 +59,9 @@ export default function Dashboard() {
       {playlistTrack && <PlaylistModal track={playlistTrack} onClose={()=>setPlaylistTrack(null)}/>}
 
       {/* Sidebar */}
-      <aside className="w-64 bg-black border-r border-dark-700/50 p-6 flex flex-col h-screen sticky top-0 shrink-0">
+      <aside className="w-64 bg-dark-900 border-r border-dark-700/50 p-6 flex flex-col h-screen sticky top-0 shrink-0">
         <div className="flex items-center gap-3 mb-10 text-white">
-          <div className="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center shadow-lg shadow-brand-500/20"><PlayCircle size={18} className="text-black"/></div>
+          <div className="w-8 h-8 bg-white text-black flex items-center justify-center rounded-sm"><PlayCircle size={18}/></div>
           <h2 className="text-xl font-bold tracking-tight">Tastelytics</h2>
         </div>
         <nav className="flex flex-col gap-2 text-sm font-semibold">
@@ -80,12 +80,12 @@ export default function Dashboard() {
       </aside>
 
       {/* Main */}
-      <main className="flex-1 h-screen overflow-y-auto bg-gradient-to-b from-dark-800 to-dark-900">
-        <header className="sticky top-0 z-20 bg-dark-800/80 backdrop-blur-md border-b border-dark-700/50 px-8 py-4">
+      <main className="flex-1 h-screen overflow-y-auto bg-dark-900">
+        <header className="sticky top-0 z-20 bg-dark-900/90 backdrop-blur-md border-b border-dark-700/50 px-8 py-4">
           <div className="relative w-full max-w-lg">
-            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-dark-400"/>
+            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-dark-500"/>
             <input type="text" value={searchQ} onChange={e=>{doSearch(e.target.value);setView('search');}} onFocus={()=>setView('search')}
-              placeholder="Search artists, songs, albums..." className="w-full bg-dark-900/50 text-white placeholder-dark-400 pl-10 pr-4 py-2.5 rounded-full border border-dark-600/50 focus:outline-none focus:ring-1 focus:ring-white transition-all text-sm font-medium"/>
+              placeholder="Search artists, songs, albums..." className="w-full bg-dark-800 text-white placeholder-dark-500 pl-10 pr-4 py-2 rounded-md border border-dark-700 focus:outline-none focus:border-white transition-all text-sm font-medium"/>
           </div>
         </header>
 
@@ -127,9 +127,9 @@ function HomeView({ feedArtists, recTracks, newReleases, feedLoading, onArtist, 
           <h2 className="text-xl font-bold text-white mb-4">New Releases</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
             {newReleases.map(a=>(
-              <div key={a.id} onClick={()=>onAlbum(a)} className="bg-dark-800/40 p-4 rounded-xl hover:bg-dark-700/60 transition-all cursor-pointer group border border-transparent hover:border-dark-600/50">
-                <img src={a.images?.[0]?.url} className="w-full aspect-square rounded-lg mb-3 object-cover shadow-md" alt=""/>
-                <h3 className="font-bold text-white truncate text-sm group-hover:text-brand-500 transition-colors">{a.name}</h3>
+              <div key={a.id} onClick={()=>onAlbum(a)} className="bg-transparent p-3 border border-dark-700 hover:border-dark-400 transition-colors cursor-pointer group">
+                <img src={a.images?.[0]?.url} className="w-full aspect-square mb-3 object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all" alt=""/>
+                <h3 className="font-bold text-white truncate text-sm transition-colors">{a.name}</h3>
                 <p className="text-xs text-dark-400 truncate">{a.artists?.map(x=>x.name).join(', ')}</p>
               </div>
             ))}
@@ -142,10 +142,10 @@ function HomeView({ feedArtists, recTracks, newReleases, feedLoading, onArtist, 
           <h2 className="text-xl font-bold text-white mb-4">Explore Artists</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
             {feedArtists.slice(0,10).map(a=>(
-              <div key={a.id} onClick={()=>onArtist(a)} className="bg-dark-800/40 p-4 rounded-xl hover:bg-dark-700/60 transition-all cursor-pointer group border border-transparent hover:border-dark-600/50">
-                <img src={a.images?.[0]?.url} className="w-full aspect-square rounded-full mb-3 object-cover shadow-md" alt=""/>
-                <h3 className="font-bold text-white truncate text-sm text-center group-hover:text-brand-500 transition-colors">{a.name}</h3>
-                <p className="text-xs text-dark-400 truncate text-center">{a.genres?.slice(0,2).join(', ')||'Artist'}</p>
+              <div key={a.id} onClick={()=>onArtist(a)} className="bg-transparent p-3 border border-dark-700 hover:border-dark-400 transition-colors cursor-pointer group">
+                <img src={a.images?.[0]?.url} className="w-full aspect-square mb-3 object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all" alt=""/>
+                <h3 className="font-bold text-white truncate text-sm transition-colors">{a.name}</h3>
+                <p className="text-xs text-dark-400 truncate">{a.genres?.slice(0,2).join(', ')||'Artist'}</p>
               </div>
             ))}
           </div>
@@ -162,7 +162,7 @@ function SearchView({ searchQ, searchResults, searching, searchTab, setSearchTab
     <div>
       <div className="flex gap-3 mb-6">
         {tabs.map(t=>(
-          <button key={t} onClick={()=>setSearchTab(t)} className={`px-4 py-1.5 rounded-full text-sm font-bold capitalize transition-all ${searchTab===t?'bg-white text-black':'bg-dark-700/50 text-dark-400 hover:text-white'}`}>{t}</button>
+          <button key={t} onClick={()=>setSearchTab(t)} className={`px-4 py-1.5 rounded-sm text-sm font-bold capitalize transition-all border ${searchTab===t?'bg-white text-black border-white':'bg-transparent text-dark-400 border-dark-700 hover:text-white hover:border-dark-400'}`}>{t}</button>
         ))}
       </div>
 
@@ -175,8 +175,8 @@ function SearchView({ searchQ, searchResults, searching, searchTab, setSearchTab
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
             {searchResults.artists.items.slice(0,searchTab==='artists'?12:6).map(a=>(
               <div key={a.id} onClick={()=>onArtist(a)} className="flex flex-col items-center gap-2 cursor-pointer group">
-                <img src={a.images?.[0]?.url||'https://via.placeholder.com/150'} className="w-24 h-24 rounded-full object-cover group-hover:scale-105 transition-transform shadow-lg" alt=""/>
-                <span className="text-sm font-bold text-white group-hover:text-brand-500 transition-colors truncate w-full text-center">{a.name}</span>
+                <img src={a.images?.[0]?.url||'https://via.placeholder.com/150'} className="w-24 h-24 object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all border border-dark-700" alt=""/>
+                <span className="text-sm font-bold text-white transition-colors truncate w-full text-center">{a.name}</span>
               </div>
             ))}
           </div>
@@ -191,11 +191,11 @@ function SearchView({ searchQ, searchResults, searching, searchTab, setSearchTab
           <h2 className="text-lg font-bold text-white mb-4">Albums</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
             {searchResults.albums.items.slice(0,searchTab==='albums'?15:5).map(a=>(
-              <div key={a.id} onClick={()=>onAlbum(a)} className="bg-dark-800/40 p-4 rounded-xl hover:bg-dark-700/60 transition-all cursor-pointer group border border-transparent hover:border-dark-600/50">
-                <img src={a.images?.[0]?.url} className="w-full aspect-square rounded-lg mb-3 object-cover shadow-md" alt=""/>
-                <h3 className="font-bold text-white truncate text-sm group-hover:text-brand-500 transition-colors">{a.name}</h3>
+              <div key={a.id} onClick={()=>onAlbum(a)} className="bg-transparent p-3 border border-dark-700 hover:border-dark-400 transition-colors cursor-pointer group">
+                <img src={a.images?.[0]?.url} className="w-full aspect-square mb-3 object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all" alt=""/>
+                <h3 className="font-bold text-white truncate text-sm transition-colors">{a.name}</h3>
                 <p className="text-xs text-dark-400 truncate">{a.artists?.map(x=>x.name).join(', ')}</p>
-                <p className="text-xs text-dark-500">{a.release_date?.slice(0,4)}</p>
+                <p className="text-xs font-mono text-dark-500">{a.release_date?.slice(0,4)}</p>
               </div>
             ))}
           </div>
@@ -235,22 +235,22 @@ function ArtistPage({ artist, onBack, onArtist, onAlbum, onReview, onPlaylist })
       <button onClick={onBack} className="flex items-center gap-2 text-dark-400 hover:text-white mb-6 transition-colors"><ArrowLeft size={18}/>Back</button>
 
       <div className="flex gap-6 mb-8">
-        <img src={img} className="w-44 h-44 rounded-2xl object-cover shadow-xl" alt=""/>
+        <img src={img} className="w-44 h-44 object-cover border border-dark-700 grayscale" alt=""/>
         <div className="flex flex-col justify-end">
-          <p className="text-xs uppercase tracking-widest text-dark-400 font-bold mb-1">Artist</p>
+          <p className="text-xs uppercase tracking-widest font-mono text-dark-400 font-bold mb-1">Artist</p>
           <h1 className="text-5xl font-extrabold text-white tracking-tight mb-2">{artist.name}</h1>
           <p className="text-dark-400 text-sm mb-3">{artist.genres?.slice(0,3).join(' · ') || 'Music'}</p>
           <div className="flex items-center gap-4">
-            {followers && <span className="text-dark-500 text-xs">{followers.toLocaleString()} followers</span>}
-            <a href={spotifyUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-brand-500 text-xs font-bold hover:underline"><ExternalLink size={14}/>Open in Spotify</a>
-            <button onClick={()=>onReview({...artist, entity_type: 'artist'})} className="flex items-center gap-1 text-yellow-400 hover:text-yellow-300 text-xs font-bold"><Disc3 size={14}/>Review Artist</button>
+            {followers && <span className="text-dark-500 font-mono text-xs">{followers.toLocaleString()} followers</span>}
+            <a href={spotifyUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-white text-xs font-bold hover:underline"><ExternalLink size={14}/>Open in Spotify</a>
+            <button onClick={()=>onReview({...artist, entity_type: 'artist'})} className="flex items-center gap-1 text-dark-100 hover:text-white text-xs font-bold"><Disc3 size={14}/>Review Artist</button>
           </div>
         </div>
       </div>
 
       {loading ? <Spinner/> : (
         <div className="space-y-10">
-          <div className="bg-dark-800/20 p-6 rounded-2xl border border-dark-700/50">
+          <div className="p-6 border border-dark-700">
             <h2 className="text-xl font-bold text-white mb-4">Artist Reviews</h2>
             <ReviewsPanel trackId={artist.id} padding="pl-0" />
           </div>
@@ -266,10 +266,10 @@ function ArtistPage({ artist, onBack, onArtist, onAlbum, onReview, onPlaylist })
               <h2 className="text-xl font-bold text-white mb-4">Discography</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
                 {albums.map(a=>(
-                  <div key={a.id} onClick={()=>onAlbum(a)} className="bg-dark-800/40 p-4 rounded-xl hover:bg-dark-700/60 transition-all cursor-pointer group border border-transparent hover:border-dark-600/50">
-                    <img src={a.images?.[0]?.url} className="w-full aspect-square rounded-lg mb-3 object-cover shadow-md" alt=""/>
-                    <h3 className="font-bold text-white truncate text-sm group-hover:text-brand-500 transition-colors">{a.name}</h3>
-                    <p className="text-xs text-dark-500">{a.release_date?.slice(0,4)} · {a.album_type}</p>
+                  <div key={a.id} onClick={()=>onAlbum(a)} className="bg-transparent p-3 border border-dark-700 hover:border-dark-400 transition-colors cursor-pointer group">
+                    <img src={a.images?.[0]?.url} className="w-full aspect-square mb-3 object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all" alt=""/>
+                    <h3 className="font-bold text-white truncate text-sm transition-colors">{a.name}</h3>
+                    <p className="text-xs font-mono text-dark-500">{a.release_date?.slice(0,4)} · {a.album_type}</p>
                   </div>
                 ))}
               </div>
@@ -282,8 +282,8 @@ function ArtistPage({ artist, onBack, onArtist, onAlbum, onReview, onPlaylist })
               <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-4">
                 {related.slice(0,12).map(a=>(
                   <div key={a.id} onClick={()=>onArtist(a)} className="flex flex-col items-center gap-2 cursor-pointer group">
-                    <img src={a.images?.[0]?.url||'https://via.placeholder.com/150'} className="w-24 h-24 rounded-full object-cover group-hover:scale-105 transition-transform shadow-lg" alt=""/>
-                    <span className="text-xs font-bold text-white text-center truncate w-full group-hover:text-brand-500 transition-colors">{a.name}</span>
+                    <img src={a.images?.[0]?.url||'https://via.placeholder.com/150'} className="w-24 h-24 object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all border border-dark-700" alt=""/>
+                    <span className="text-xs font-bold text-white text-center truncate w-full transition-colors">{a.name}</span>
                   </div>
                 ))}
               </div>
@@ -321,11 +321,11 @@ function AlbumPage({ album: albumProp, onBack, onArtist, onReview, onPlaylist })
       <button onClick={onBack} className="flex items-center gap-2 text-dark-400 hover:text-white mb-6 transition-colors"><ArrowLeft size={18}/>Back</button>
 
       <div className="flex gap-6 mb-8">
-        <img src={img} className="w-48 h-48 rounded-2xl object-cover shadow-2xl" alt=""/>
+        <img src={img} className="w-48 h-48 object-cover border border-dark-700 grayscale" alt=""/>
         <div className="flex flex-col justify-end">
-          <p className="text-xs uppercase tracking-widest text-dark-400 font-bold mb-1">{album.album_type || 'Album'}</p>
+          <p className="text-xs uppercase tracking-widest font-mono text-dark-400 font-bold mb-1">{album.album_type || 'Album'}</p>
           <h1 className="text-4xl font-extrabold text-white tracking-tight mb-2">{album.name}</h1>
-          <div className="flex items-center gap-2 text-dark-400 text-sm mb-3">
+          <div className="flex items-center gap-2 font-mono text-dark-400 text-sm mb-3">
             {album.artists?.map((a,i) => (
               <span key={a.id}>
                 <button onClick={()=>onArtist(a)} className="hover:text-white hover:underline transition-colors font-semibold">{a.name}</button>
@@ -336,15 +336,15 @@ function AlbumPage({ album: albumProp, onBack, onArtist, onReview, onPlaylist })
             {tracks.length > 0 && <span>· {tracks.length} tracks, {mins} min</span>}
           </div>
           <div className="flex items-center gap-4">
-            <a href={spotifyUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-brand-500 text-sm font-bold hover:underline"><ExternalLink size={14}/>Open in Spotify</a>
-            <button onClick={()=>onReview({...album, entity_type: 'album'})} className="flex items-center gap-1 text-yellow-400 hover:text-yellow-300 text-sm font-bold"><Disc3 size={14}/>Review Album</button>
+            <a href={spotifyUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-white text-sm font-bold hover:underline"><ExternalLink size={14}/>Open in Spotify</a>
+            <button onClick={()=>onReview({...album, entity_type: 'album'})} className="flex items-center gap-1 text-dark-100 hover:text-white text-sm font-bold"><Disc3 size={14}/>Review Album</button>
           </div>
         </div>
       </div>
 
       {loading ? <Spinner/> : (
         <div className="space-y-6">
-          <div className="bg-dark-800/20 p-6 rounded-2xl border border-dark-700/50">
+          <div className="p-6 border border-dark-700">
             <h2 className="text-xl font-bold text-white mb-4">Album Reviews</h2>
             <ReviewsPanel trackId={album.id} padding="pl-0" />
           </div>
@@ -406,24 +406,24 @@ function LibraryView() {
         ) :
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {playlists.map(pl=>(
-            <div key={pl.PlaylistID} className="bg-dark-800/40 p-5 rounded-xl border border-dark-600/30 hover:border-dark-500/50 transition-colors">
+            <div key={pl.PlaylistID} className="bg-transparent p-5 border border-dark-700 hover:border-dark-400 transition-colors">
               <div className="flex items-start justify-between mb-3">
-                <div><h3 className="text-white font-bold">{pl.Name}</h3><p className="text-dark-400 text-sm">{(pl.Tracks||[]).length} tracks</p></div>
+                <div><h3 className="text-white font-bold">{pl.Name}</h3><p className="text-dark-400 font-mono text-sm">{(pl.Tracks||[]).length} tracks</p></div>
                 <div className="flex gap-1">
-                  <button onClick={()=>setExpanded(expanded===pl.PlaylistID?null:pl.PlaylistID)} className="text-dark-400 hover:text-white p-1.5 rounded-lg hover:bg-dark-600/50">
+                  <button onClick={()=>setExpanded(expanded===pl.PlaylistID?null:pl.PlaylistID)} className="text-dark-400 hover:text-white p-1.5 border border-transparent hover:border-dark-600 transition-colors">
                     {expanded===pl.PlaylistID ? <ChevronUp size={16}/> : <ChevronDown size={16}/>}
                   </button>
-                  <button onClick={()=>deletePlaylist(pl.PlaylistID)} className="text-dark-400 hover:text-red-400 p-1.5 rounded-lg hover:bg-dark-600/50"><Trash2 size={16}/></button>
+                  <button onClick={()=>deletePlaylist(pl.PlaylistID)} className="text-dark-400 hover:text-white p-1.5 border border-transparent hover:border-dark-600 transition-colors"><Trash2 size={16}/></button>
                 </div>
               </div>
               {(pl.Tracks||[]).slice(0, expanded===pl.PlaylistID ? undefined : 3).map((t,i)=>(
                 <div key={i} className="flex items-center gap-3 py-1.5">
-                  {t.image && <img src={t.image} className="w-8 h-8 rounded" alt=""/>}
-                  <div className="flex-1 min-w-0"><p className="text-white text-sm truncate">{t.name}</p><p className="text-dark-500 text-xs truncate">{t.artist}</p></div>
+                  {t.image && <img src={t.image} className="w-8 h-8 object-cover grayscale opacity-80 border border-dark-700" alt=""/>}
+                  <div className="flex-1 min-w-0"><p className="text-white text-sm truncate">{t.name}</p><p className="text-dark-500 font-mono text-xs truncate">{t.artist}</p></div>
                 </div>
               ))}
               {(pl.Tracks||[]).length > 3 && expanded!==pl.PlaylistID && (
-                <p className="text-dark-500 text-xs mt-2 cursor-pointer hover:text-dark-400" onClick={()=>setExpanded(pl.PlaylistID)}>+{(pl.Tracks||[]).length - 3} more</p>
+                <p className="text-dark-500 font-mono text-xs mt-2 cursor-pointer hover:text-dark-400" onClick={()=>setExpanded(pl.PlaylistID)}>+{(pl.Tracks||[]).length - 3} more</p>
               )}
             </div>
           ))}
