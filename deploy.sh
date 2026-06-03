@@ -69,6 +69,15 @@ cd ..
 echo "Deploying Frontend to S3..."
 aws s3 sync ./frontend/dist s3://$BUCKET --delete
 
+echo "Invalidating CloudFront Cache..."
+DOMAIN_NAME=$(echo $URL | sed -e 's|^[^/]*//||' -e 's|/.*$||')
+DIST_ID=$(aws cloudfront list-distributions --query "DistributionList.Items[?DomainName=='$DOMAIN_NAME'].Id" --output text)
+if [ -n "$DIST_ID" ] && [ "$DIST_ID" != "None" ]; then
+    aws cloudfront create-invalidation --distribution-id $DIST_ID --paths "/*"
+else
+    echo "Could not find CloudFront distribution for domain $DOMAIN_NAME"
+fi
+
 echo ""
 echo "====================================================="
 echo "🎉 DEPLOYMENT COMPLETE!"
