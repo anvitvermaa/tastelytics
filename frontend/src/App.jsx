@@ -78,20 +78,20 @@ function Login() {
 
   return (
     <div className="relative min-h-screen flex items-center justify-center p-6 text-dark-100 font-sans">
-      <div className="z-10 bg-dark-900 border-3d p-10 max-w-sm w-full flex flex-col items-center">
-        <div className="w-16 h-16 bg-brand-500 border-3d-inset text-white mb-6 flex items-center justify-center">
+      <div className="z-10 bg-white border-[4px] border-dark-700 shadow-retro p-10 max-w-sm w-full flex flex-col items-center">
+        <div className="w-16 h-16 bg-brand-500 border-[3px] border-dark-700 shadow-[2px_2px_0_0_#000] text-white mb-6 flex items-center justify-center">
           <PlayCircle size={36} strokeWidth={2} />
         </div>
 
         {view === 'choice' && (
           <div className="w-full flex flex-col items-center">
-            <h1 className="text-4xl font-bold text-brand-500 mb-2 text-center" style={{ fontFamily: 'Georgia, serif' }}>Tastelytics</h1>
-            <p className="text-dark-600 text-sm text-center mb-8">Early Internet Music Discovery.</p>
+            <h1 className="text-5xl font-extrabold text-brand-500 mb-2 text-center uppercase tracking-tighter" style={{ textShadow: '2px 2px 0px #000' }}>Tastelytics</h1>
+            <p className="text-black font-extrabold uppercase tracking-widest text-sm text-center mb-8 border-2 border-dark-700 px-2 bg-yellow-200">Early Internet Music Discovery.</p>
             <div className="flex flex-col gap-4 w-full">
-              <button onClick={() => setView('signup')} className="w-full bg-brand-500 text-white border-3d py-2 font-bold hover:bg-brand-600 active:border-3d-inset">
+              <button onClick={() => setView('signup')} className="w-full bg-brand-500 text-white border-[4px] border-dark-700 shadow-retro py-3 font-extrabold uppercase tracking-widest hover:shadow-retro-hover hover:bg-brand-600 transition-all">
                 Create Account
               </button>
-              <button onClick={() => setView('login')} className="w-full bg-dark-800 text-black border-3d py-2 font-bold hover:bg-gray-200 active:border-3d-inset">
+              <button onClick={() => setView('login')} className="w-full bg-white text-black border-[4px] border-dark-700 shadow-retro py-3 font-extrabold uppercase tracking-widest hover:shadow-retro-hover hover:bg-yellow-200 transition-all">
                 Log In
               </button>
             </div>
@@ -100,17 +100,17 @@ function Login() {
 
         {view !== 'choice' && (
           <div className="w-full flex flex-col items-center">
-            <h1 className="text-2xl font-bold text-brand-500 mb-2 text-center" style={{ fontFamily: 'Georgia, serif' }}>
+            <h1 className="text-3xl font-extrabold text-brand-500 mb-2 text-center uppercase tracking-tighter" style={{ textShadow: '2px 2px 0px #000' }}>
               {view === 'signup' ? 'Join Us' : 'Welcome Back'}
             </h1>
-            <p className="text-dark-600 text-sm text-center mb-8">
+            <p className="text-black font-bold uppercase tracking-widest text-xs text-center mb-8 bg-yellow-200 border-2 border-dark-700 px-2">
               {view === 'signup' ? 'Create your new Tastelytics account.' : 'Log in to your existing account.'}
             </p>
-            <button onClick={handleGoogleLogin} className="w-full flex items-center justify-center gap-3 bg-dark-800 text-black font-bold py-2 border-3d hover:bg-gray-200 active:border-3d-inset">
+            <button onClick={handleGoogleLogin} className="w-full flex items-center justify-center gap-3 bg-white text-black font-extrabold uppercase tracking-widest py-3 border-[4px] border-dark-700 shadow-retro hover:shadow-retro-hover hover:bg-yellow-200 transition-all">
               <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google" />
-              Sign in with Google
+              Google
             </button>
-            <button onClick={() => setView('choice')} className="mt-8 text-xs text-brand-500 hover:underline">
+            <button onClick={() => setView('choice')} className="mt-8 text-xs font-bold uppercase tracking-widest text-brand-500 hover:underline">
               [ Go Back ]
             </button>
           </div>
@@ -177,7 +177,7 @@ function Onboarding() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-dark-900 text-dark-100 font-sans p-6">
-      <div className="max-w-2xl w-full bg-dark-800 p-10 border-3d">
+      <div className="max-w-2xl w-full bg-white p-10 border-[4px] border-dark-700 shadow-retro">
         <div className="flex gap-2 mb-10 justify-center">
           {[1, 2, 3].map(i => (
             <div key={i} className={`h-4 w-16 border-2 border-dark-700 ${step >= i ? 'bg-brand-500' : 'bg-white'}`} />
@@ -186,83 +186,83 @@ function Onboarding() {
 
         {step === 1 && (
           <div>
-            <h1 className="text-4xl font-bold text-brand-500 mb-2" style={{ fontFamily: 'Georgia, serif' }}>Welcome.</h1>
-            <p className="text-dark-600 mb-8 font-bold text-sm">Let's get to know you before we build your library.</p>
-            <div className="space-y-5 mb-10">
+            <h1 className="text-5xl font-extrabold text-brand-500 mb-2 uppercase tracking-tighter" style={{ textShadow: '2px 2px 0px #000' }}>Welcome.</h1>
+            <p className="text-black font-extrabold uppercase tracking-widest text-sm mb-8 bg-yellow-200 border-2 border-dark-700 inline-block px-2">Let's get to know you before we build your library.</p>
+            <div className="space-y-6 mb-12">
               <div>
-                <label className="block text-sm font-bold text-dark-600 mb-1">What should we call you?</label>
-                <input type="text" value={profile.name} onChange={e => setProfile({ ...profile, name: e.target.value })} className="w-full bg-white text-black px-3 py-2 border-3d-inset focus:outline-none focus:bg-yellow-50" placeholder="Your display name" />
+                <label className="block text-sm font-extrabold uppercase tracking-widest text-dark-700 mb-2">What should we call you?</label>
+                <input type="text" value={profile.name} onChange={e => setProfile({ ...profile, name: e.target.value })} className="w-full bg-white text-black px-4 py-3 border-[4px] border-dark-700 shadow-[inset_4px_4px_0_0_rgba(0,0,0,0.1)] focus:outline-none focus:bg-yellow-200 font-extrabold uppercase tracking-widest" placeholder="YOUR NAME" />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-bold text-dark-600 mb-1">Age</label>
-                  <input type="number" value={profile.age} onChange={e => setProfile({ ...profile, age: e.target.value })} className="w-full bg-white text-black px-3 py-2 border-3d-inset focus:outline-none focus:bg-yellow-50" placeholder="25" />
+                  <label className="block text-sm font-extrabold uppercase tracking-widest text-dark-700 mb-2">Age</label>
+                  <input type="number" value={profile.age} onChange={e => setProfile({ ...profile, age: e.target.value })} className="w-full bg-white text-black px-4 py-3 border-[4px] border-dark-700 shadow-[inset_4px_4px_0_0_rgba(0,0,0,0.1)] focus:outline-none focus:bg-yellow-200 font-extrabold uppercase tracking-widest" placeholder="25" />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-dark-600 mb-1">Gender</label>
-                  <select value={profile.gender} onChange={e => setProfile({ ...profile, gender: e.target.value })} className="w-full bg-white text-black px-3 py-2 border-3d-inset focus:outline-none focus:bg-yellow-50">
+                  <label className="block text-sm font-extrabold uppercase tracking-widest text-dark-700 mb-2">Gender</label>
+                  <select value={profile.gender} onChange={e => setProfile({ ...profile, gender: e.target.value })} className="w-full bg-white text-black px-4 py-3 border-[4px] border-dark-700 shadow-[inset_4px_4px_0_0_rgba(0,0,0,0.1)] focus:outline-none focus:bg-yellow-200 font-extrabold uppercase tracking-widest">
                     <option value="" disabled>Select</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="non-binary">Non-binary</option>
-                    <option value="prefer-not">Prefer not to say</option>
+                    <option value="male">MALE</option>
+                    <option value="female">FEMALE</option>
+                    <option value="non-binary">NON-BINARY</option>
+                    <option value="prefer-not">PREFER NOT TO SAY</option>
                   </select>
                 </div>
               </div>
             </div>
-            <button onClick={handleNextStep1} disabled={!profile.name || !profile.age} className="w-full bg-brand-500 disabled:bg-dark-500 text-white font-bold py-3 px-6 border-3d hover:bg-brand-600 active:border-3d-inset flex justify-center items-center gap-2">
-              Continue <ChevronRight size={20} />
+            <button onClick={handleNextStep1} disabled={!profile.name || !profile.age} className="w-full bg-brand-500 disabled:bg-dark-500 disabled:shadow-none text-white font-extrabold uppercase tracking-widest py-3 px-6 border-[4px] border-dark-700 shadow-retro hover:shadow-retro-hover hover:bg-brand-600 transition-all flex justify-center items-center gap-2">
+              CONTINUE <ChevronRight size={24} strokeWidth={3} />
             </button>
           </div>
         )}
 
         {step === 2 && (
           <div>
-            <h1 className="text-4xl font-bold text-brand-500 mb-2" style={{ fontFamily: 'Georgia, serif' }}>Pick your vibes.</h1>
-            <p className="text-dark-600 mb-8 font-bold text-sm">Select a few genres you listen to.</p>
-            <div className="flex flex-wrap gap-2 mb-10">
+            <h1 className="text-5xl font-extrabold text-brand-500 mb-2 uppercase tracking-tighter" style={{ textShadow: '2px 2px 0px #000' }}>Pick your vibes.</h1>
+            <p className="text-black font-extrabold uppercase tracking-widest text-sm mb-8 bg-yellow-200 border-2 border-dark-700 inline-block px-2">Select a few genres you listen to.</p>
+            <div className="flex flex-wrap gap-4 mb-12">
               {POPULAR_GENRES.map(genre => {
                 const isSelected = selectedGenres.includes(genre);
                 return (
-                  <button key={genre} onClick={() => { if (isSelected) setSelectedGenres(selectedGenres.filter(g => g !== genre)); else setSelectedGenres([...selectedGenres, genre]); }} className={`px-4 py-1.5 font-bold text-sm border-3d hover:bg-gray-200 active:border-3d-inset ${isSelected ? 'bg-brand-500 text-white' : 'bg-dark-800 text-black'}`}>
+                  <button key={genre} onClick={() => { if (isSelected) setSelectedGenres(selectedGenres.filter(g => g !== genre)); else setSelectedGenres([...selectedGenres, genre]); }} className={`px-5 py-2 font-extrabold uppercase tracking-widest text-sm border-[4px] border-dark-700 shadow-retro hover:shadow-retro-hover transition-transform ${isSelected ? 'bg-brand-500 text-white' : 'bg-white text-black'}`}>
                     {genre}
                   </button>
                 )
               })}
             </div>
-            <button onClick={handleNextStep2} disabled={selectedGenres.length === 0} className="w-full bg-brand-500 disabled:bg-dark-500 text-white font-bold py-3 px-6 border-3d hover:bg-brand-600 active:border-3d-inset flex justify-center items-center gap-2">
-              Continue <ChevronRight size={20} />
+            <button onClick={handleNextStep2} disabled={selectedGenres.length === 0} className="w-full bg-brand-500 disabled:bg-dark-500 disabled:shadow-none text-white font-extrabold uppercase tracking-widest py-3 px-6 border-[4px] border-dark-700 shadow-retro hover:shadow-retro-hover hover:bg-brand-600 transition-all flex justify-center items-center gap-2">
+              CONTINUE <ChevronRight size={24} strokeWidth={3} />
             </button>
           </div>
         )}
 
         {step === 3 && (
           <div className="flex flex-col h-[500px]">
-            <h1 className="text-4xl font-bold text-brand-500 mb-2" style={{ fontFamily: 'Georgia, serif' }}>Choose artists.</h1>
-            <p className="text-dark-600 mb-6 font-bold text-sm">We've curated these based on your genres.</p>
+            <h1 className="text-5xl font-extrabold text-brand-500 mb-2 uppercase tracking-tighter" style={{ textShadow: '2px 2px 0px #000' }}>Choose artists.</h1>
+            <p className="text-black font-extrabold uppercase tracking-widest text-sm mb-6 bg-yellow-200 border-2 border-dark-700 inline-block px-2">We've curated these based on your genres.</p>
             {isLoading ? (
               <div className="flex-1 flex items-center justify-center">
                 <Spinner />
               </div>
             ) : (
-              <div className="flex-1 overflow-y-auto mb-6 pr-2" style={{ scrollbarWidth: 'thin' }}>
-                <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
+              <div className="flex-1 overflow-y-auto mb-6 pr-4" style={{ scrollbarWidth: 'thin' }}>
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-6">
                   {recommendedArtists.map(artist => {
                     const isSelected = selectedArtists.includes(artist.id);
                     return (
                       <div key={artist.id}>
-                        <div className={`relative group cursor-pointer border-3d ${isSelected ? 'bg-brand-500' : 'bg-white'}`} onClick={() => { if (isSelected) setSelectedArtists(selectedArtists.filter(id => id !== artist.id)); else setSelectedArtists([...selectedArtists, artist.id]); }}>
-                          <img src={artist.images?.[0]?.url} className={`w-full aspect-square object-cover ${isSelected ? 'opacity-90 mix-blend-multiply' : ''}`} alt={artist.name} />
-                          {isSelected && <div className="absolute inset-0 flex items-center justify-center"><CheckCircle2 className="text-white drop-shadow-md" size={36} /></div>}
+                        <div className={`relative group cursor-pointer border-[4px] border-dark-700 shadow-retro ${isSelected ? 'bg-brand-500 hover:shadow-retro-hover' : 'bg-white hover:shadow-retro-hover'} transition-all`} onClick={() => { if (isSelected) setSelectedArtists(selectedArtists.filter(id => id !== artist.id)); else setSelectedArtists([...selectedArtists, artist.id]); }}>
+                          <img src={artist.images?.[0]?.url} className={`w-full aspect-square object-cover ${isSelected ? 'opacity-90 mix-blend-multiply' : 'grayscale hover:grayscale-0'} transition-all`} alt={artist.name} />
+                          {isSelected && <div className="absolute inset-0 flex items-center justify-center"><CheckCircle2 className="text-white" size={48} strokeWidth={3} /></div>}
                         </div>
-                        <p className="text-center font-bold text-xs mt-2 truncate text-dark-100">{artist.name}</p>
+                        <p className="text-center font-extrabold text-xs uppercase tracking-widest mt-3 truncate text-dark-100">{artist.name}</p>
                       </div>
                     )
                   })}
                 </div>
               </div>
             )}
-            <button onClick={finishOnboarding} disabled={selectedArtists.length === 0 || isLoading} className="w-full bg-brand-500 disabled:bg-dark-500 text-white font-bold py-3 px-6 border-3d hover:bg-brand-600 active:border-3d-inset flex justify-center items-center gap-2 mt-auto shrink-0">
+            <button onClick={finishOnboarding} disabled={selectedArtists.length === 0 || isLoading} className="w-full bg-brand-500 disabled:bg-dark-500 disabled:shadow-none text-white font-extrabold uppercase tracking-widest py-3 px-6 border-[4px] border-dark-700 shadow-retro hover:shadow-retro-hover hover:bg-brand-600 transition-all flex justify-center items-center gap-2 mt-auto shrink-0">
               {isLoading ? 'WORKING...' : 'FINISH ONBOARDING'}
             </button>
           </div>
