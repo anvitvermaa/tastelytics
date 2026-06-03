@@ -1,22 +1,33 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-500: #FFFFFF; /* Minimal white accent */
-  --color-brand-600: #EAEAEA;
-  --color-dark-900: #000000; /* Deep black background */
-  --color-dark-800: #0A0A0A;
-  --color-dark-700: #1A1A1A;
-  --color-dark-600: #2A2A2A;
+  --color-brand-500: #FF0000; /* Harsh red links/alerts */
+  --color-brand-600: #CC0000;
+  --color-dark-900: #8e916a; /* Thrasher Olive Drab */
+  --color-dark-800: #c8c6a7; /* Tan/Khaki Panels */
+  --color-dark-700: #000000; /* Raw Black Borders */
+  --color-dark-600: #333333;
   --color-dark-500: #666666;
-  --color-dark-400: #A0A0A0;
-  --color-dark-100: #FAFAFA;
+  --color-dark-400: #FFFFFF; /* White for contrast where needed */
+  --color-dark-100: #000000; /* Default text is black now */
   
-  --font-sans: "Geist", "Inter", sans-serif;
-  --font-mono: "Geist Mono", monospace;
+  --font-sans: "Special Elite", "Courier New", monospace;
+  --font-mono: "VT323", "Courier New", monospace;
 }
 
 @layer base {
   body {
-    @apply bg-dark-900 text-dark-100 font-sans antialiased selection:bg-white selection:text-black;
+    @apply bg-dark-900 text-dark-100 font-sans antialiased selection:bg-brand-500 selection:text-white;
+    background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.03) 10px, rgba(0,0,0,0.03) 20px);
+  }
+}
+
+@layer utilities {
+  .shadow-retro {
+    box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
+  }
+  .shadow-retro-hover {
+    box-shadow: 2px 2px 0px 0px rgba(0,0,0,1);
+    transform: translate(2px, 2px);
   }
 }

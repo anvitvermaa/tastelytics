@@ -53,14 +53,14 @@ export function ReviewModal({ track, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-dark-900 border border-dark-700 p-8 max-w-md w-full" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-none flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-dark-800 border-[6px] border-dark-700 shadow-[12px_12px_0_0_#000] p-8 max-w-md w-full" onClick={e => e.stopPropagation()}>
         <div className="flex justify-between items-start mb-6">
-          <h2 className="text-xl font-bold text-white">Write a Review</h2>
-          <button onClick={onClose} className="text-dark-400 hover:text-white"><X size={20}/></button>
+          <h2 className="text-3xl font-extrabold text-brand-500 uppercase tracking-tighter" style={{ textShadow: '2px 2px 0px #000' }}>Write a Review</h2>
+          <button onClick={onClose} className="text-black hover:text-brand-500 bg-white border-[3px] border-dark-700 p-1 shadow-retro"><X size={24} strokeWidth={3}/></button>
         </div>
-        <div className="flex gap-4 mb-6">
-          <img src={track.images?.[0]?.url || track.album?.images?.[0]?.url} className="w-16 h-16 object-cover grayscale opacity-80 border border-dark-700" alt="" />
+        <div className="flex gap-4 mb-6 bg-white p-3 border-[4px] border-dark-700 shadow-retro">
+          <img src={track.images?.[0]?.url || track.album?.images?.[0]?.url} className="w-20 h-20 object-cover grayscale opacity-80 border-[3px] border-dark-700" alt="" />
           <div className="min-w-0">
             <p className="text-xs uppercase tracking-widest text-dark-400 font-bold mb-0.5">{track.entity_type || 'Track'}</p>
             <p className="text-white font-bold truncate">{track.name}</p>
@@ -68,14 +68,14 @@ export function ReviewModal({ track, onClose }) {
           </div>
         </div>
         {done ? (
-          <div className="text-center py-8"><p className="text-white text-lg font-bold">✓ Review submitted!</p></div>
+          <div className="text-center py-8 bg-white border-[4px] border-dark-700 shadow-retro"><p className="text-brand-500 text-2xl font-extrabold uppercase tracking-widest">✓ REVIEW SUBMITTED!</p></div>
         ) : (<>
-          <div className="mb-4"><p className="text-dark-400 font-mono text-sm mb-2">Rating</p><Stars rating={rating} onRate={setRating} size={28}/></div>
+          <div className="mb-4 bg-white p-3 border-[4px] border-dark-700 shadow-retro"><p className="text-black font-extrabold text-sm mb-2 uppercase tracking-widest border-b-2 border-dark-700 pb-1">Rating</p><Stars rating={rating} onRate={setRating} size={36}/></div>
           <textarea value={text} onChange={e=>setText(e.target.value)} rows={3} placeholder="Share your thoughts..."
-            className="w-full bg-transparent text-white placeholder-dark-500 p-3 border border-dark-700 focus:outline-none focus:border-white mb-4 resize-none transition-colors"/>
+            className="w-full bg-white text-black placeholder-dark-500 p-3 border-[4px] border-dark-700 shadow-[inset_4px_4px_0_0_rgba(0,0,0,0.2)] focus:outline-none focus:bg-yellow-100 mb-4 resize-none font-bold"/>
           <button onClick={submit} disabled={!rating || submitting}
-            className="w-full bg-white disabled:bg-dark-700 disabled:text-dark-500 text-black font-bold py-3 hover:bg-gray-200 transition-colors">
-            {submitting ? 'Submitting...' : 'Submit Review'}
+            className="w-full bg-brand-500 disabled:bg-dark-500 text-white font-extrabold py-4 border-[4px] border-dark-700 shadow-retro hover:shadow-retro-hover uppercase tracking-widest transition-transform">
+            {submitting ? 'SUBMITTING...' : 'SUBMIT REVIEW'}
           </button>
         </>)}
       </div>
@@ -111,22 +111,22 @@ export function PlaylistModal({ track, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-dark-900 border border-dark-700 p-8 max-w-sm w-full" onClick={e=>e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-none flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-dark-800 border-[6px] border-dark-700 shadow-[12px_12px_0_0_#000] p-8 max-w-sm w-full" onClick={e=>e.stopPropagation()}>
         <div className="flex justify-between items-start mb-6">
-          <h2 className="text-xl font-bold text-white">Add to Playlist</h2>
-          <button onClick={onClose} className="text-dark-400 hover:text-white"><X size={20}/></button>
+          <h2 className="text-3xl font-extrabold text-brand-500 uppercase tracking-tighter" style={{ textShadow: '2px 2px 0px #000' }}>Add to Playlist</h2>
+          <button onClick={onClose} className="text-black hover:text-brand-500 bg-white border-[3px] border-dark-700 p-1 shadow-retro"><X size={24} strokeWidth={3}/></button>
         </div>
-        <div className="flex gap-2 mb-4">
-          <input value={newName} onChange={e=>setNewName(e.target.value)} placeholder="New playlist name..."
-            className="flex-1 bg-transparent text-white placeholder-dark-500 px-3 py-2 border border-dark-700 focus:outline-none focus:border-white text-sm transition-colors"/>
-          <button onClick={createPlaylist} disabled={creating} className="bg-white text-black font-bold px-4 py-2 hover:bg-gray-200 transition-colors"><Plus size={16}/></button>
+        <div className="flex gap-2 mb-6 bg-white p-3 border-[4px] border-dark-700 shadow-retro">
+          <input value={newName} onChange={e=>setNewName(e.target.value)} placeholder="New playlist..."
+            className="flex-1 bg-white text-black placeholder-dark-500 px-3 py-2 border-[3px] border-dark-700 shadow-[inset_2px_2px_0_0_rgba(0,0,0,0.2)] focus:outline-none focus:bg-yellow-100 font-bold uppercase"/>
+          <button onClick={createPlaylist} disabled={creating} className="bg-brand-500 text-white font-extrabold px-4 py-2 border-[3px] border-dark-700 hover:bg-red-700 transition-colors shadow-retro hover:shadow-retro-hover"><Plus size={20} strokeWidth={3}/></button>
         </div>
-        <div className="space-y-2 max-h-60 overflow-y-auto">
+        <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
           {playlists.map(pl => (
             <button key={pl.PlaylistID} onClick={()=>addTrack(pl)}
-              className="w-full text-left bg-transparent hover:bg-dark-800 text-white p-3 border border-dark-700 flex items-center gap-3 transition-colors">
-              <Music size={16} className="text-white shrink-0"/><span className="truncate text-sm">{pl.Name}</span>
+              className="w-full text-left bg-white hover:bg-yellow-200 text-black p-3 border-[4px] border-dark-700 shadow-retro hover:shadow-retro-hover transition-transform flex items-center gap-3">
+              <Music size={20} strokeWidth={3} className="text-brand-500 shrink-0"/><span className="truncate font-extrabold uppercase tracking-widest">{pl.Name}</span>
             </button>
           ))}
           {!playlists.length && <p className="text-dark-500 text-sm text-center py-4">No playlists yet. Create one above!</p>}
