@@ -79,7 +79,7 @@ export default function Dashboard() {
         <div className="bg-dark-800 p-4 flex flex-col md:flex-row items-center justify-between gap-6 border-b-2 border-dark-700">
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2 cursor-pointer hover:scale-105 transition-transform" onClick={()=>nav('home')}>
-              <div className="w-12 h-12 bg-brand-500 border-[3px] border-dark-700 shadow-[2px_2px_0_0_#000] text-white flex items-center justify-center"><PlayCircle size={32} strokeWidth={3} /></div>
+              <div className="w-12 h-12 bg-brand-500 border-[3px] border-dark-700 shadow-[2px_2px_0_0_#000] text-white flex items-center justify-center animate-spin-slow"><PlayCircle size={32} strokeWidth={3} /></div>
               <h2 className="text-4xl font-extrabold text-brand-500 uppercase tracking-tighter" style={{ textShadow: '2px 2px 0px #000' }}>Tastelytics</h2>
             </div>
             <nav className="flex gap-3">
@@ -132,10 +132,10 @@ export default function Dashboard() {
           </div>
 
           {/* Sticky Note Widget */}
-          <div className="relative bg-[#f9f586] border-[2px] border-dark-600 p-4 shadow-[3px_3px_5px_rgba(0,0,0,0.3)] rotate-2 mt-2 ml-2 hover:rotate-0 transition-transform" style={{backgroundImage: 'radial-gradient(#dfd86a 15%, transparent 16%)', backgroundSize: '4px 4px'}}>
+          <div className="relative bg-[#f9f586] border-[2px] border-dark-600 p-4 shadow-[3px_3px_5px_rgba(0,0,0,0.3)] mt-2 ml-2 hover:rotate-0 transition-transform animate-float" style={{backgroundImage: 'radial-gradient(#dfd86a 15%, transparent 16%)', backgroundSize: '4px 4px', transform: 'rotate(2deg)'}}>
             <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-2xl drop-shadow-md z-10">📌</span>
             <p className="font-comic text-[#0000A0] text-xs leading-relaxed mt-2 text-center font-bold" style={{fontFamily: '"Comic Sans MS", cursive'}}>
-              <strong>UPDATE!</strong><br/>
+              <strong>UPDATE!</strong> <span className="text-red-600 animate-blink">NEW!</span><br/>
               Welcome to the page! Rate your favorite albums today. ~Anvit
             </p>
           </div>
@@ -150,8 +150,8 @@ export default function Dashboard() {
 
           {/* Web Badges */}
           <div className="flex flex-wrap gap-2 justify-center">
-            <div className="w-[88px] h-[31px] bg-brand-500 border-2 border-white flex flex-col justify-center items-center cursor-pointer hover:scale-105 transition-transform"><span className="text-[10px] text-white font-extrabold uppercase leading-none">Best Viewed In</span><span className="text-xs text-white font-extrabold uppercase leading-none">Netscape</span></div>
-            <div className="w-[88px] h-[31px] bg-yellow-400 border-2 border-black flex items-center justify-center cursor-pointer hover:scale-105 transition-transform"><span className="text-[10px] text-black font-extrabold uppercase">Valid HTML</span></div>
+            <div className="w-[88px] h-[31px] bg-brand-500 border-2 border-white flex flex-col justify-center items-center cursor-pointer hover:scale-105 transition-transform animate-bounce-lateral"><span className="text-[10px] text-white font-extrabold uppercase leading-none">Best Viewed In</span><span className="text-xs text-white font-extrabold uppercase leading-none">Netscape</span></div>
+            <div className="w-[88px] h-[31px] bg-yellow-400 border-2 border-black flex items-center justify-center cursor-pointer hover:scale-105 transition-transform animate-bounce-lateral" style={{animationDelay: '1.5s'}}><span className="text-[10px] text-black font-extrabold uppercase">Valid HTML</span></div>
           </div>
         </aside>
 
