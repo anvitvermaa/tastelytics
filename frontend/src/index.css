@@ -1,33 +1,41 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-500: #FF0000; /* Harsh red links/alerts */
-  --color-brand-600: #CC0000;
-  --color-dark-900: #8e916a; /* Thrasher Olive Drab */
-  --color-dark-800: #c8c6a7; /* Tan/Khaki Panels */
-  --color-dark-700: #000000; /* Raw Black Borders */
+  --color-brand-500: #0000EE; /* Classic 2000s Link Blue */
+  --color-brand-600: #551A8B; /* Visited Link Purple */
+  --color-brand-red: #B22222; /* Firebrick Red for alerts */
+  --color-dark-900: #E6E6FA; /* Lavender/Light Gray background */
+  --color-dark-800: #FFFFFF; /* White panels */
+  --color-dark-700: #000000; /* Standard black */
   --color-dark-600: #333333;
   --color-dark-500: #666666;
-  --color-dark-400: #FFFFFF; /* White for contrast where needed */
-  --color-dark-100: #000000; /* Default text is black now */
+  --color-dark-400: #CCCCCC; /* Light gray borders */
+  --color-dark-100: #000000; /* Text */
   
-  --font-sans: "Special Elite", "Courier New", monospace;
-  --font-mono: "VT323", "Courier New", monospace;
+  --font-sans: "Verdana", "Tahoma", "Arial", sans-serif;
+  --font-mono: "Courier New", monospace;
+  --font-comic: "Comic Sans MS", "Comic Sans", cursive;
 }
 
 @layer base {
   body {
     @apply bg-dark-900 text-dark-100 font-sans antialiased selection:bg-brand-500 selection:text-white;
-    background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.03) 10px, rgba(0,0,0,0.03) 20px);
+    background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%239C92AC' fill-opacity='0.1' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='3'/%3E%3Ccircle cx='13' cy='13' r='3'/%3E%3C/g%3E%3C/svg%3E");
   }
 }
 
 @layer utilities {
   .shadow-retro {
-    box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
   }
   .shadow-retro-hover {
-    box-shadow: 2px 2px 0px 0px rgba(0,0,0,1);
-    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+    transform: translate(1px, 1px);
+  }
+  .border-3d {
+    border: 2px outset #CCCCCC;
+  }
+  .border-3d-inset {
+    border: 2px inset #CCCCCC;
   }
 }
