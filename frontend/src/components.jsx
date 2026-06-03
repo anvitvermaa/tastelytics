@@ -54,11 +54,12 @@ export function ReviewModal({ track, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-none flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-white border-[4px] border-dark-700 shadow-retro p-6 max-w-md w-full transform rotate-1" onClick={e => e.stopPropagation()}>
-        <div className="flex justify-between items-start mb-6 border-b-[4px] border-dark-700 pb-2">
-          <h2 className="text-3xl font-extrabold text-brand-500 uppercase tracking-tighter" style={{ textShadow: '2px 2px 0px #000' }}>Write a Review</h2>
-          <button onClick={onClose} className="text-white hover:bg-brand-red bg-dark-700 border-[3px] border-dark-700 shadow-[2px_2px_0_0_#000] p-1 transition-colors"><X size={20} strokeWidth={3}/></button>
+      <div className="win95-window max-w-md w-full" onClick={e => e.stopPropagation()}>
+        <div className="win95-titlebar">
+          <span>REVIEW.EXE</span>
+          <button onClick={onClose} className="win95-button w-5 h-5 text-xs font-bold pb-1 text-black">X</button>
         </div>
+        <div className="p-6 bg-dark-800 flex flex-col">
         <div className="flex gap-4 mb-6 bg-yellow-200 p-3 border-[3px] border-dark-700 shadow-[inset_2px_2px_0_0_rgba(0,0,0,0.1)]">
           <img src={track.images?.[0]?.url || track.album?.images?.[0]?.url} className="w-16 h-16 object-cover border-[2px] border-dark-700" alt="" />
           <div className="min-w-0">
@@ -68,16 +69,17 @@ export function ReviewModal({ track, onClose }) {
           </div>
         </div>
         {done ? (
-          <div className="text-center py-6 bg-yellow-200 border-[3px] border-dark-700 shadow-[inset_2px_2px_0_0_rgba(0,0,0,0.1)]"><p className="text-brand-500 text-xl font-extrabold uppercase tracking-widest">✓ Submitted!</p></div>
+          <div className="text-center py-6 bg-white border-[3px] border-dark-700 shadow-[inset_2px_2px_0_0_rgba(0,0,0,0.1)]"><p className="text-[#0000A0] text-xl font-extrabold uppercase tracking-widest">✓ Submitted!</p></div>
         ) : (<>
-          <div className="mb-4 bg-white p-3 border-[3px] border-dark-700 flex items-center gap-4"><p className="text-black font-extrabold uppercase tracking-widest text-sm">Rating:</p><Stars rating={rating} onRate={setRating} size={28}/></div>
+          <div className="mb-4 bg-dark-800 p-3 border-2 border-dark-600 shadow-[inset_2px_2px_0_0_rgba(255,255,255,0.5)] flex items-center gap-4"><p className="text-black font-extrabold uppercase tracking-widest text-sm">Rating:</p><Stars rating={rating} onRate={setRating} size={28}/></div>
           <textarea value={text} onChange={e=>setText(e.target.value)} rows={3} placeholder="Share your thoughts..."
-            className="w-full bg-white text-black placeholder-dark-500 p-3 border-[3px] border-dark-700 shadow-[inset_4px_4px_0_0_rgba(0,0,0,0.1)] focus:outline-none focus:bg-yellow-200 mb-4 resize-none font-extrabold uppercase tracking-widest text-sm"/>
+            className="w-full win95-inset text-black placeholder-dark-600 p-3 border-[3px] border-dark-700 focus:outline-none focus:bg-yellow-100 mb-4 resize-none font-bold text-sm"/>
           <button onClick={submit} disabled={!rating || submitting}
-            className="w-full bg-brand-500 disabled:bg-dark-500 disabled:shadow-none text-white font-extrabold uppercase tracking-widest py-3 border-[4px] border-dark-700 shadow-retro hover:shadow-retro-hover hover:bg-brand-600 transition-all">
+            className="win95-button w-full py-2 text-sm font-bold uppercase">
             {submitting ? 'SUBMITTING...' : 'SUBMIT REVIEW'}
           </button>
         </>)}
+        </div>
       </div>
     </div>
   );
@@ -112,24 +114,26 @@ export function PlaylistModal({ track, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-none flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-white border-[4px] border-dark-700 shadow-retro p-6 max-w-sm w-full transform -rotate-1" onClick={e=>e.stopPropagation()}>
-        <div className="flex justify-between items-start mb-6 border-b-[4px] border-dark-700 pb-2">
-          <h2 className="text-3xl font-extrabold text-brand-500 uppercase tracking-tighter" style={{ textShadow: '2px 2px 0px #000' }}>Add to Playlist</h2>
-          <button onClick={onClose} className="text-white hover:bg-brand-red bg-dark-700 border-[3px] border-dark-700 shadow-[2px_2px_0_0_#000] p-1 transition-colors"><X size={20} strokeWidth={3}/></button>
+      <div className="win95-window max-w-sm w-full" onClick={e=>e.stopPropagation()}>
+        <div className="win95-titlebar">
+          <span>ADD_TO_PLAYLIST.EXE</span>
+          <button onClick={onClose} className="win95-button w-5 h-5 text-xs font-bold pb-1 text-black">X</button>
         </div>
+        <div className="p-6 bg-dark-800 flex flex-col">
         <div className="flex gap-2 mb-6">
           <input value={newName} onChange={e=>setNewName(e.target.value)} placeholder="New playlist..."
-            className="flex-1 bg-white text-black placeholder-dark-500 px-3 py-2 border-[3px] border-dark-700 shadow-[inset_2px_2px_0_0_rgba(0,0,0,0.1)] focus:outline-none focus:bg-yellow-200 font-extrabold uppercase tracking-widest text-sm"/>
-          <button onClick={createPlaylist} disabled={creating} className="bg-brand-500 text-white font-extrabold px-3 py-2 border-[3px] border-dark-700 shadow-retro-sm hover:shadow-retro-sm-hover hover:bg-brand-600 transition-all"><Plus size={20} strokeWidth={3}/></button>
+            className="flex-1 win95-inset text-black placeholder-dark-600 px-3 py-2 border-[3px] border-dark-700 focus:outline-none focus:bg-yellow-100 font-bold text-sm"/>
+          <button onClick={createPlaylist} disabled={creating} className="win95-button px-3 py-2"><Plus size={20} strokeWidth={3}/></button>
         </div>
-        <div className="space-y-3 max-h-60 overflow-y-auto pr-2" style={{ scrollbarWidth: 'thin' }}>
+        <div className="space-y-3 max-h-60 overflow-y-auto pr-2 win95-inset p-2 border-[3px] border-dark-700 bg-white" style={{ scrollbarWidth: 'thin' }}>
           {playlists.map(pl => (
             <button key={pl.PlaylistID} onClick={()=>addTrack(pl)}
-              className="w-full text-left bg-white hover:bg-yellow-200 text-black p-3 border-[3px] border-dark-700 shadow-[2px_2px_0_0_#000] flex items-center gap-3 transition-colors">
-              <Music size={20} strokeWidth={3} className="text-brand-500 shrink-0"/><span className="truncate font-extrabold uppercase tracking-widest text-sm">{pl.Name}</span>
+              className="w-full text-left bg-white hover:bg-brand-500 hover:text-white text-black p-2 flex items-center gap-3 transition-colors group">
+              <Music size={20} strokeWidth={3} className="text-[#0000A0] group-hover:text-white shrink-0"/><span className="truncate font-extrabold uppercase tracking-widest text-sm">{pl.Name}</span>
             </button>
           ))}
-          {!playlists.length && <p className="text-dark-500 font-bold uppercase tracking-widest text-sm text-center py-4 border-2 border-dashed border-dark-400">No playlists yet.</p>}
+          {!playlists.length && <p className="text-dark-600 font-bold uppercase tracking-widest text-sm text-center py-4">No playlists yet.</p>}
+        </div>
         </div>
       </div>
     </div>
@@ -147,12 +151,12 @@ export function ReviewsPanel({ trackId, padding = "pl-16" }) {
   return (
     <div className={`${padding} pr-4 pb-3 space-y-4`}>
       {reviews.slice(0,5).map((r,i) => (
-        <div key={i} className="bg-yellow-100 border-[3px] border-dark-700 shadow-retro-sm p-3">
+        <div key={i} className="bg-white border-2 border-dark-400 shadow-[inset_2px_2px_0_0_rgba(0,0,0,0.1)] p-3">
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-brand-500 text-xs font-extrabold uppercase tracking-widest bg-white border-2 border-dark-700 px-1">{r.UserName||'Anonymous'}</span>
+            <span className="text-white text-xs font-bold uppercase tracking-widest bg-[#0000A0] px-1">{r.UserName||'Anonymous'}</span>
             <Stars rating={Number(r.Rating)||0} size={14}/>
           </div>
-          {r.ReviewText && <p className="text-black font-bold text-sm leading-relaxed font-mono">{r.ReviewText}</p>}
+          {r.ReviewText && <p className="text-black font-bold text-sm leading-relaxed">{r.ReviewText}</p>}
         </div>
       ))}
     </div>
@@ -172,10 +176,10 @@ export function TrackRow({ track, onReview, onPlaylist }) {
           <p className="text-dark-600 font-bold uppercase tracking-widest text-xs truncate">{track.artists?.map(a=>a.name).join(', ')}</p>
         </div>
         <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <a href={spotifyUrl} target="_blank" rel="noopener noreferrer" className="text-black bg-white hover:bg-yellow-200 p-1.5 border-[2px] border-dark-700 shadow-[2px_2px_0_0_#000]" title="Open in Spotify"><ExternalLink size={16} strokeWidth={3}/></a>
-          <button onClick={()=>setShowReviews(!showReviews)} className="text-black bg-white hover:bg-yellow-200 p-1.5 border-[2px] border-dark-700 shadow-[2px_2px_0_0_#000]" title="Reviews"><MessageCircle size={16} strokeWidth={3}/></button>
-          <button onClick={()=>onPlaylist(track)} className="text-black bg-white hover:bg-yellow-200 p-1.5 border-[2px] border-dark-700 shadow-[2px_2px_0_0_#000]" title="Add to playlist"><PlusCircle size={16} strokeWidth={3}/></button>
-          <button onClick={()=>onReview(track)} className="text-white bg-brand-500 hover:bg-brand-600 p-1.5 border-[2px] border-dark-700 shadow-[2px_2px_0_0_#000]" title="Write review"><Star size={16} strokeWidth={3}/></button>
+          <a href={spotifyUrl} target="_blank" rel="noopener noreferrer" className="win95-button p-1.5" title="Open in Spotify"><ExternalLink size={16} strokeWidth={3}/></a>
+          <button onClick={()=>setShowReviews(!showReviews)} className="win95-button p-1.5" title="Reviews"><MessageCircle size={16} strokeWidth={3}/></button>
+          <button onClick={()=>onPlaylist(track)} className="win95-button p-1.5" title="Add to playlist"><PlusCircle size={16} strokeWidth={3}/></button>
+          <button onClick={()=>onReview(track)} className="win95-button p-1.5" title="Write review"><Star size={16} strokeWidth={3}/></button>
         </div>
       </div>
       {showReviews && <ReviewsPanel trackId={track.id}/>}

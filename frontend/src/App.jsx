@@ -78,43 +78,56 @@ function Login() {
 
   return (
     <div className="relative min-h-screen flex items-center justify-center p-6 text-dark-100 font-sans">
-      <div className="z-10 bg-white border-[4px] border-dark-700 shadow-retro p-10 max-w-sm w-full flex flex-col items-center">
-        <div className="w-16 h-16 bg-brand-500 border-[3px] border-dark-700 shadow-[2px_2px_0_0_#000] text-white mb-6 flex items-center justify-center">
-          <PlayCircle size={36} strokeWidth={2} />
+      <div className="z-10 win95-window max-w-sm w-full">
+        <div className="win95-titlebar">
+          <div className="flex items-center gap-2">
+            <span className="bg-brand-500 w-4 h-4 inline-block border border-white"></span>
+            <span>LOGIN.EXE</span>
+          </div>
+          <div className="flex gap-1">
+            <button className="win95-button w-5 h-5 text-xs pb-1">_</button>
+            <button className="win95-button w-5 h-5 text-xs pb-1">□</button>
+            <button className="win95-button w-5 h-5 text-xs font-bold pb-1 text-black">X</button>
+          </div>
         </div>
+        <div className="p-10 flex flex-col items-center bg-dark-800">
+          <div className="w-16 h-16 bg-brand-500 border-[3px] border-dark-700 shadow-[2px_2px_0_0_#000] text-white mb-6 flex items-center justify-center">
+            <PlayCircle size={36} strokeWidth={2} />
+          </div>
 
-        {view === 'choice' && (
-          <div className="w-full flex flex-col items-center">
-            <h1 className="text-5xl font-extrabold text-brand-500 mb-2 text-center uppercase tracking-tighter" style={{ textShadow: '2px 2px 0px #000' }}>Tastelytics</h1>
-            <p className="text-black font-extrabold uppercase tracking-widest text-sm text-center mb-8 border-2 border-dark-700 px-2 bg-yellow-200">Early Internet Music Discovery.</p>
-            <div className="flex flex-col gap-4 w-full">
-              <button onClick={() => setView('signup')} className="w-full bg-brand-500 text-white border-[4px] border-dark-700 shadow-retro py-3 font-extrabold uppercase tracking-widest hover:shadow-retro-hover hover:bg-brand-600 transition-all">
-                Create Account
+          {view === 'choice' && (
+            <div className="w-full flex flex-col items-center">
+              <h1 className="text-5xl font-extrabold text-brand-500 mb-2 text-center uppercase tracking-tighter" style={{ textShadow: '2px 2px 0px #000' }}>Tastelytics</h1>
+              <p className="text-black font-extrabold uppercase tracking-widest text-sm text-center mb-8 border-2 border-dark-700 px-2 bg-yellow-200">Early Internet Music Discovery.</p>
+              <div className="flex flex-col gap-4 w-full">
+                <button onClick={() => setView('signup')} className="w-full bg-brand-500 text-white border-[4px] border-dark-700 shadow-retro py-3 font-extrabold uppercase tracking-widest hover:shadow-retro-hover hover:bg-brand-600 transition-all">
+                  Create Account
+                </button>
+                <button onClick={() => setView('login')} className="w-full bg-white text-black border-[4px] border-dark-700 shadow-retro py-3 font-extrabold uppercase tracking-widest hover:shadow-retro-hover hover:bg-yellow-200 transition-all">
+                  Log In
+                </button>
+              </div>
+            </div>
+          )}
+
+          {view !== 'choice' && (
+            <div className="w-full flex flex-col items-center">
+              <h1 className="text-3xl font-extrabold text-brand-500 mb-2 text-center uppercase tracking-tighter" style={{ textShadow: '2px 2px 0px #000' }}>
+                {view === 'signup' ? 'Join Us' : 'Welcome Back'}
+              </h1>
+              <p className="text-black font-bold uppercase tracking-widest text-xs text-center mb-8 bg-yellow-200 border-2 border-dark-700 px-2">
+                {view === 'signup' ? 'Create your new Tastelytics account.' : 'Log in to your existing account.'}
+              </p>
+              <button onClick={handleGoogleLogin} className="w-full flex items-center justify-center gap-3 bg-white text-black font-extrabold uppercase tracking-widest py-3 border-[4px] border-dark-700 shadow-retro hover:shadow-retro-hover hover:bg-yellow-200 transition-all">
+                <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google" />
+                Google
               </button>
-              <button onClick={() => setView('login')} className="w-full bg-white text-black border-[4px] border-dark-700 shadow-retro py-3 font-extrabold uppercase tracking-widest hover:shadow-retro-hover hover:bg-yellow-200 transition-all">
-                Log In
+              <button onClick={() => setView('choice')} className="mt-8 text-xs font-bold uppercase tracking-widest text-brand-500 hover:underline">
+                [ Go Back ]
               </button>
             </div>
-          </div>
-        )}
-
-        {view !== 'choice' && (
-          <div className="w-full flex flex-col items-center">
-            <h1 className="text-3xl font-extrabold text-brand-500 mb-2 text-center uppercase tracking-tighter" style={{ textShadow: '2px 2px 0px #000' }}>
-              {view === 'signup' ? 'Join Us' : 'Welcome Back'}
-            </h1>
-            <p className="text-black font-bold uppercase tracking-widest text-xs text-center mb-8 bg-yellow-200 border-2 border-dark-700 px-2">
-              {view === 'signup' ? 'Create your new Tastelytics account.' : 'Log in to your existing account.'}
-            </p>
-            <button onClick={handleGoogleLogin} className="w-full flex items-center justify-center gap-3 bg-white text-black font-extrabold uppercase tracking-widest py-3 border-[4px] border-dark-700 shadow-retro hover:shadow-retro-hover hover:bg-yellow-200 transition-all">
-              <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google" />
-              Google
-            </button>
-            <button onClick={() => setView('choice')} className="mt-8 text-xs font-bold uppercase tracking-widest text-brand-500 hover:underline">
-              [ Go Back ]
-            </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
@@ -176,8 +189,20 @@ function Onboarding() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-dark-900 text-dark-100 font-sans p-6">
-      <div className="max-w-2xl w-full bg-white p-10 border-[4px] border-dark-700 shadow-retro">
+    <div className="min-h-screen flex items-center justify-center p-6">
+      <div className="max-w-2xl w-full win95-window">
+        <div className="win95-titlebar">
+          <div className="flex items-center gap-2">
+            <span className="bg-brand-500 w-4 h-4 inline-block border border-white"></span>
+            <span>ONBOARDING.EXE</span>
+          </div>
+          <div className="flex gap-1">
+            <button className="win95-button w-5 h-5 text-xs pb-1">_</button>
+            <button className="win95-button w-5 h-5 text-xs pb-1">□</button>
+            <button className="win95-button w-5 h-5 text-xs font-bold pb-1 text-black">X</button>
+          </div>
+        </div>
+        <div className="p-10 bg-dark-800">
         <div className="flex gap-2 mb-10 justify-center">
           {[1, 2, 3].map(i => (
             <div key={i} className={`h-4 w-16 border-2 border-dark-700 ${step >= i ? 'bg-brand-500' : 'bg-white'}`} />
@@ -267,6 +292,7 @@ function Onboarding() {
             </button>
           </div>
         )}
+        </div>
       </div>
     </div>
   );

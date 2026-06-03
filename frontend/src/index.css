@@ -4,12 +4,12 @@
   --color-brand-500: #0000EE; /* Classic 2000s Link Blue */
   --color-brand-600: #551A8B; /* Visited Link Purple */
   --color-brand-red: #B22222; /* Firebrick Red for alerts */
-  --color-dark-900: #E6E6FA; /* Lavender/Light Gray background */
-  --color-dark-800: #FFFFFF; /* White panels */
+  --color-dark-900: #F5F5DC; /* Beige Paper Background */
+  --color-dark-800: #C0C0C0; /* Classic Win95 Gray */
   --color-dark-700: #000000; /* Standard black */
-  --color-dark-600: #333333;
-  --color-dark-500: #666666;
-  --color-dark-400: #CCCCCC; /* Light gray borders */
+  --color-dark-600: #808080; /* Win95 Dark Gray shadow */
+  --color-dark-500: #DFDFDF; /* Win95 Light Gray highlight */
+  --color-dark-400: #FFFFFF; /* White */
   --color-dark-100: #000000; /* Text */
   
   --font-sans: "Verdana", "Tahoma", "Arial", sans-serif;
@@ -20,7 +20,13 @@
 @layer base {
   body {
     @apply bg-dark-900 text-dark-100 font-sans antialiased selection:bg-brand-500 selection:text-white;
-    background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%239C92AC' fill-opacity='0.1' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='3'/%3E%3Ccircle cx='13' cy='13' r='3'/%3E%3C/g%3E%3C/svg%3E");
+    /* Paper Texture: Mix of radial gradients to simulate grain/paper */
+    background-color: #f4f0e6;
+    background-image: 
+      radial-gradient(#d5cbbb 15%, transparent 16%),
+      radial-gradient(#d5cbbb 15%, transparent 16%);
+    background-size: 8px 8px;
+    background-position: 0 0, 4px 4px;
   }
 }
 
@@ -39,10 +45,23 @@
     box-shadow: 1px 1px 0 0 #000;
     transform: translate(2px, 2px);
   }
-  .border-3d {
-    border: 4px solid #000;
+  .win95-window {
+    @apply bg-dark-800 border-[4px] border-dark-700 flex flex-col;
+    /* Inner 3D border typical of Win95, inside the thick black brutalist border */
+    box-shadow: inset 2px 2px 0 0 #FFFFFF, inset -2px -2px 0 0 #808080, 6px 6px 0 0 #000;
   }
-  .border-3d-inset {
-    border: 4px solid #000;
+  .win95-titlebar {
+    @apply bg-[#0000A0] text-white font-bold px-2 py-1 flex justify-between items-center select-none;
+  }
+  .win95-button {
+    @apply bg-dark-800 text-black border-2 border-dark-800 font-bold flex items-center justify-center active:bg-dark-500;
+    box-shadow: inset 1px 1px 0 0 #FFFFFF, inset -1px -1px 0 0 #808080, inset 2px 2px 0 0 #DFDFDF, inset -2px -2px 0 0 #333333;
+  }
+  .win95-button:active {
+    box-shadow: inset 1px 1px 0 0 #333333, inset -1px -1px 0 0 #FFFFFF, inset 2px 2px 0 0 #808080, inset -2px -2px 0 0 #DFDFDF;
+  }
+  .win95-inset {
+    @apply bg-white;
+    box-shadow: inset 2px 2px 0 0 #808080, inset -2px -2px 0 0 #FFFFFF;
   }
 }

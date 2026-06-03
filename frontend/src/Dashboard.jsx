@@ -58,17 +58,25 @@ export default function Dashboard() {
       {reviewTrack && <ReviewModal track={reviewTrack} onClose={()=>setReviewTrack(null)}/>}
       {playlistTrack && <PlaylistModal track={playlistTrack} onClose={()=>setPlaylistTrack(null)}/>}
 
-      <marquee scrollamount="8" className="w-full bg-brand-500 text-white font-mono font-bold py-1 border-b-2 border-dark-700 text-sm tracking-widest">
+      <marquee scrollamount="8" className="w-full bg-[#0000A0] text-white font-mono font-bold py-1 border-b-[3px] border-dark-700 text-sm tracking-widest">
         *** WELCOME TO TASTELYTICS *** NEW RELEASES UPDATED DAILY *** DON'T FORGET TO SIGN THE GUESTBOOK *** BEST VIEWED IN NETSCAPE NAVIGATOR ***
       </marquee>
 
       {/* Top Banner / Header */}
-      <header className="bg-white border-b-[6px] border-dark-700 shadow-retro sticky top-0 z-40 mb-10">
-        <div className="bg-yellow-300 border-b-[3px] border-dark-700 py-1 overflow-hidden flex items-center">
-          <marquee className="text-xs font-extrabold uppercase tracking-widest text-black" scrollamount="10">🔥 WELCOME TO TASTELYTICS 🔥 THE BEST PLACE TO REVIEW MUSIC ON THE WORLD WIDE WEB 🔥 UNDER CONSTRUCTION BUT STILL AWESOME 🔥</marquee>
+      <header className="win95-window sticky top-0 z-40 mb-10 mt-4 mx-6">
+        <div className="win95-titlebar">
+          <div className="flex items-center gap-2">
+            <span className="bg-brand-500 w-4 h-4 inline-block border border-white"></span>
+            <span>TASTELYTICS_EXPLORER.EXE</span>
+          </div>
+          <div className="flex gap-1">
+            <button className="win95-button w-5 h-5 text-xs pb-1">_</button>
+            <button className="win95-button w-5 h-5 text-xs pb-1">□</button>
+            <button className="win95-button w-5 h-5 text-xs font-bold pb-1 text-black">X</button>
+          </div>
         </div>
         
-        <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="bg-dark-800 p-4 flex flex-col md:flex-row items-center justify-between gap-6 border-b-2 border-dark-700">
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2 cursor-pointer hover:scale-105 transition-transform" onClick={()=>nav('home')}>
               <div className="w-12 h-12 bg-brand-500 border-[3px] border-dark-700 shadow-[2px_2px_0_0_#000] text-white flex items-center justify-center"><PlayCircle size={32} strokeWidth={3} /></div>
@@ -77,17 +85,17 @@ export default function Dashboard() {
             <nav className="flex gap-3">
               {[['home','Home'],['search','Search'],['library','Library']].map(([key,label])=>(
                 <button key={key} onClick={()=>nav(key)}
-                  className={`px-4 py-2 font-extrabold uppercase tracking-widest text-sm border-[3px] border-dark-700 shadow-retro hover:shadow-retro-hover transition-transform ${view===key||(!['home','search','library'].includes(view)&&key==='home')?'bg-brand-500 text-white':'bg-white text-black'}`}>
+                  className={`px-4 py-1 font-bold text-sm border-2 border-black ${view===key||(!['home','search','library'].includes(view)&&key==='home')?'bg-white text-black shadow-[inset_2px_2px_0_0_#808080]':'bg-dark-800 text-black shadow-[inset_2px_2px_0_0_#FFFFFF,inset_-2px_-2px_0_0_#808080]'} active:shadow-[inset_2px_2px_0_0_#808080] active:bg-white`}>
                   {label}
                 </button>
               ))}
             </nav>
           </div>
           
-          <div className="relative w-full max-w-sm">
-            <Search size={20} strokeWidth={3} className="absolute left-3 top-1/2 -translate-y-1/2 text-dark-700"/>
+          <div className="relative w-full max-w-sm flex">
+            <span className="bg-[#0000A0] text-white font-bold px-3 py-1 flex items-center border-[3px] border-dark-700 border-r-0">Search</span>
             <input type="text" value={searchQ} onChange={e=>{doSearch(e.target.value);setView('search');}} onFocus={()=>setView('search')}
-              placeholder="Search music..." className="w-full bg-white text-black placeholder-dark-500 pl-10 pr-3 py-3 border-[4px] border-dark-700 shadow-[inset_4px_4px_0_0_rgba(0,0,0,0.2)] focus:outline-none focus:bg-yellow-200 font-extrabold uppercase tracking-widest text-sm"/>
+              placeholder="Find music..." className="w-full win95-inset text-black placeholder-dark-600 px-3 py-2 border-[3px] border-dark-700 focus:outline-none focus:bg-yellow-100 font-bold text-sm"/>
           </div>
         </div>
       </header>
@@ -105,33 +113,39 @@ export default function Dashboard() {
         </main>
 
         {/* Right Widget Column */}
-        <aside className="md:col-span-3 flex flex-col gap-8">
+        <aside className="md:col-span-3 flex flex-col gap-6">
           {/* User Profile Widget */}
-          <div className="bg-white border-[4px] border-dark-700 shadow-retro p-4">
-            <h3 className="font-extrabold text-brand-500 border-b-4 border-dark-700 pb-2 mb-3 text-lg uppercase tracking-tighter">ID Badge</h3>
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-16 h-16 bg-brand-500 border-[3px] border-dark-700 shadow-[2px_2px_0_0_#000] flex-shrink-0"></div>
-              <div className="overflow-hidden">
-                <p className="text-black font-extrabold text-sm uppercase tracking-widest truncate">{profile.name || 'Anonymous User'}</p>
-                <p className="text-brand-500 font-bold text-xs uppercase tracking-widest mt-1">MEMBER</p>
-              </div>
+          <div className="win95-window">
+            <div className="win95-titlebar">
+              <span>PROFILE.INI</span>
             </div>
-            <p className="text-dark-700 text-xs font-bold bg-yellow-200 border-2 border-dark-700 p-2 mt-2 uppercase"><strong>Likes:</strong> {profile.favorite_genres?.split(',').slice(0,3).join(', ')}</p>
+            <div className="p-4 bg-dark-800">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-16 h-16 bg-brand-500 border-[3px] border-dark-700 shadow-[inset_2px_2px_0_0_rgba(255,255,255,0.5)] flex-shrink-0"></div>
+                <div className="overflow-hidden">
+                  <p className="text-black font-extrabold text-sm uppercase tracking-widest truncate">{profile.name || 'Anonymous User'}</p>
+                  <p className="text-[#0000A0] font-bold text-xs uppercase tracking-widest mt-1">MEMBER</p>
+                </div>
+              </div>
+              <p className="text-black text-xs font-bold win95-inset p-2 mt-2"><strong>Likes:</strong> {profile.favorite_genres?.split(',').slice(0,3).join(', ')}</p>
+            </div>
           </div>
 
           {/* Sticky Note Widget */}
-          <div className="relative bg-yellow-200 border-[3px] border-dark-700 p-5 shadow-retro rotate-3 mt-2 ml-2 hover:rotate-0 transition-transform">
-            <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-3xl drop-shadow-md">📌</span>
-            <p className="font-comic text-brand-red text-sm leading-relaxed mt-2 text-center font-bold" style={{fontFamily: '"Comic Sans MS", cursive'}}>
+          <div className="relative bg-[#f9f586] border-[2px] border-dark-600 p-4 shadow-[3px_3px_5px_rgba(0,0,0,0.3)] rotate-2 mt-2 ml-2 hover:rotate-0 transition-transform" style={{backgroundImage: 'radial-gradient(#dfd86a 15%, transparent 16%)', backgroundSize: '4px 4px'}}>
+            <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-2xl drop-shadow-md z-10">📌</span>
+            <p className="font-comic text-[#0000A0] text-xs leading-relaxed mt-2 text-center font-bold" style={{fontFamily: '"Comic Sans MS", cursive'}}>
               <strong>UPDATE!</strong><br/>
               Welcome to the page! Rate your favorite albums today. ~Anvit
             </p>
           </div>
 
           {/* Visitor Counter */}
-          <div className="bg-black border-[4px] border-brand-500 shadow-retro p-3 text-center">
-            <h3 className="text-brand-500 font-extrabold uppercase tracking-widest text-xs mb-2">Visitors</h3>
-            <div className="font-mono text-2xl text-red-500 font-bold tracking-widest bg-dark-700 border-2 border-dark-500 p-2 inline-block">0042069</div>
+          <div className="win95-window">
+             <div className="win95-titlebar"><span>VISITORS.EXE</span></div>
+             <div className="bg-dark-800 p-3 text-center">
+              <div className="font-mono text-2xl text-red-500 font-bold tracking-widest bg-black border-[3px] border-dark-700 shadow-[inset_2px_2px_0_0_#333] p-2 inline-block">0042069</div>
+             </div>
           </div>
 
           {/* Web Badges */}
@@ -161,21 +175,21 @@ function HomeView({ feedArtists, recTracks, newReleases, feedLoading, onArtist, 
       </div>
 
       {recTracks.length > 0 && (
-        <section>
-          <h2 className="text-2xl font-extrabold text-brand-500 mb-6 uppercase tracking-tighter bg-white inline-block px-3 py-1 border-[4px] border-dark-700 shadow-retro">Recommended for You</h2>
-          <div className="space-y-2">{recTracks.slice(0,8).map(t=><TrackRow key={t.id} track={t} onReview={onReview} onPlaylist={onPlaylist}/>)}</div>
+        <section className="win95-window">
+          <div className="win95-titlebar"><span>RECOMMENDED.EXE</span></div>
+          <div className="space-y-2 p-4 bg-dark-800">{recTracks.slice(0,8).map(t=><TrackRow key={t.id} track={t} onReview={onReview} onPlaylist={onPlaylist}/>)}</div>
         </section>
       )}
 
       {newReleases.length > 0 && (
-        <section>
-          <h2 className="text-2xl font-extrabold text-brand-500 mb-6 uppercase tracking-tighter bg-white inline-block px-3 py-1 border-[4px] border-dark-700 shadow-retro">New Releases</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
+        <section className="win95-window">
+          <div className="win95-titlebar"><span>NEW_RELEASES.EXE</span></div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 p-4 bg-dark-800">
             {newReleases.map(a=>(
-              <div key={a.id} onClick={()=>onAlbum(a)} className="bg-white p-3 border-[4px] border-dark-700 shadow-retro hover:shadow-retro-hover transition-transform cursor-pointer group">
+              <div key={a.id} onClick={()=>onAlbum(a)} className="bg-white p-3 border-[4px] border-dark-700 shadow-[inset_2px_2px_0_0_rgba(255,255,255,0.5)] shadow-retro hover:shadow-retro-hover transition-transform cursor-pointer group">
                 <img src={a.images?.[0]?.url} className="w-full aspect-square mb-3 object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all border-[3px] border-dark-700" alt=""/>
                 <h3 className="font-extrabold text-black uppercase tracking-tight truncate text-lg">{a.name}</h3>
-                <p className="text-xs text-dark-500 font-bold uppercase tracking-widest truncate">{a.artists?.map(x=>x.name).join(', ')}</p>
+                <p className="text-xs text-[#0000A0] font-bold uppercase tracking-widest truncate">{a.artists?.map(x=>x.name).join(', ')}</p>
               </div>
             ))}
           </div>
@@ -183,14 +197,14 @@ function HomeView({ feedArtists, recTracks, newReleases, feedLoading, onArtist, 
       )}
 
       {feedArtists.length > 0 && (
-        <section>
-          <h2 className="text-2xl font-extrabold text-brand-500 mb-6 uppercase tracking-tighter bg-white inline-block px-3 py-1 border-[4px] border-dark-700 shadow-retro">Explore Artists</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
+        <section className="win95-window">
+          <div className="win95-titlebar"><span>EXPLORE_ARTISTS.EXE</span></div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 p-4 bg-dark-800">
             {feedArtists.slice(0,10).map(a=>(
-              <div key={a.id} onClick={()=>onArtist(a)} className="bg-white p-3 border-[4px] border-dark-700 shadow-retro hover:shadow-retro-hover transition-transform cursor-pointer group">
+              <div key={a.id} onClick={()=>onArtist(a)} className="bg-white p-3 border-[4px] border-dark-700 shadow-[inset_2px_2px_0_0_rgba(255,255,255,0.5)] shadow-retro hover:shadow-retro-hover transition-transform cursor-pointer group">
                 <img src={a.images?.[0]?.url} className="w-full aspect-square mb-3 object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all border-[3px] border-dark-700" alt=""/>
                 <h3 className="font-extrabold text-black uppercase tracking-tight truncate text-lg">{a.name}</h3>
-                <p className="text-xs text-dark-500 font-bold uppercase tracking-widest truncate">{a.genres?.slice(0,2).join(', ')||'Artist'}</p>
+                <p className="text-xs text-[#0000A0] font-bold uppercase tracking-widest truncate">{a.genres?.slice(0,2).join(', ')||'Artist'}</p>
               </div>
             ))}
           </div>
@@ -207,7 +221,7 @@ function SearchView({ searchQ, searchResults, searching, searchTab, setSearchTab
     <div>
       <div className="flex gap-4 mb-10 flex-wrap">
         {tabs.map(t=>(
-          <button key={t} onClick={()=>setSearchTab(t)} className={`px-5 py-2 border-[4px] border-dark-700 shadow-retro hover:shadow-retro-hover text-sm font-extrabold uppercase tracking-widest transition-transform ${searchTab===t?'bg-brand-500 text-white':'bg-white text-black'}`}>{t}</button>
+          <button key={t} onClick={()=>setSearchTab(t)} className={`win95-button px-5 py-2 text-sm font-extrabold uppercase tracking-widest ${searchTab===t?'bg-brand-500 text-white':'bg-dark-800 text-black'}`}>{t}</button>
         ))}
       </div>
 
@@ -216,34 +230,40 @@ function SearchView({ searchQ, searchResults, searching, searchTab, setSearchTab
 
       {searchResults && <>
         {(searchTab==='all'||searchTab==='artists') && searchResults.artists?.items?.length > 0 && <>
-          <h2 className="text-2xl font-extrabold text-brand-500 mb-6 uppercase tracking-tighter bg-white inline-block px-3 py-1 border-[4px] border-dark-700 shadow-retro">Artists</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-6 mb-12">
-            {searchResults.artists.items.slice(0,searchTab==='artists'?12:6).map(a=>(
-              <div key={a.id} onClick={()=>onArtist(a)} className="flex flex-col items-center gap-3 cursor-pointer group">
-                <img src={a.images?.[0]?.url||'https://via.placeholder.com/150'} className="w-28 h-28 object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-transform border-[4px] border-dark-700 shadow-retro group-hover:shadow-retro-hover" alt=""/>
-                <span className="text-sm font-extrabold text-black bg-white border-2 border-dark-700 px-2 uppercase tracking-widest truncate w-full text-center">{a.name}</span>
-              </div>
-            ))}
-          </div>
+          <section className="win95-window mb-10">
+            <div className="win95-titlebar"><span>ARTISTS.EXE</span></div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-6 p-4 bg-dark-800">
+              {searchResults.artists.items.slice(0,searchTab==='artists'?12:6).map(a=>(
+                <div key={a.id} onClick={()=>onArtist(a)} className="flex flex-col items-center gap-3 cursor-pointer group">
+                  <img src={a.images?.[0]?.url||'https://via.placeholder.com/150'} className="w-28 h-28 object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-transform border-[4px] border-dark-700 shadow-[inset_2px_2px_0_0_rgba(255,255,255,0.5)] shadow-retro group-hover:shadow-retro-hover" alt=""/>
+                  <span className="text-sm font-extrabold text-black bg-white border-2 border-dark-700 px-2 uppercase tracking-widest truncate w-full text-center">{a.name}</span>
+                </div>
+              ))}
+            </div>
+          </section>
         </>}
 
         {(searchTab==='all'||searchTab==='tracks') && searchResults.tracks?.items?.length > 0 && <>
-          <h2 className="text-lg font-bold text-dark-700 mb-4 uppercase tracking-widest bg-yellow-200 inline-block px-2 border-2 border-dark-700 shadow-retro-sm">Tracks</h2>
-          <div className="space-y-2 mb-8">{searchResults.tracks.items.slice(0,searchTab==='tracks'?20:8).map(t=><TrackRow key={t.id} track={t} onReview={onReview} onPlaylist={onPlaylist}/>)}</div>
+          <section className="win95-window mb-10">
+            <div className="win95-titlebar"><span>TRACKS.EXE</span></div>
+            <div className="space-y-2 p-4 bg-dark-800">{searchResults.tracks.items.slice(0,searchTab==='tracks'?20:8).map(t=><TrackRow key={t.id} track={t} onReview={onReview} onPlaylist={onPlaylist}/>)}</div>
+          </section>
         </>}
 
         {(searchTab==='all'||searchTab==='albums') && searchResults.albums?.items?.length > 0 && <>
-          <h2 className="text-2xl font-extrabold text-brand-500 mb-6 uppercase tracking-tighter bg-white inline-block px-3 py-1 border-[4px] border-dark-700 shadow-retro">Albums</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
-            {searchResults.albums.items.slice(0,searchTab==='albums'?15:5).map(a=>(
-              <div key={a.id} onClick={()=>onAlbum(a)} className="bg-white p-3 border-[4px] border-dark-700 shadow-retro hover:shadow-retro-hover transition-transform cursor-pointer group">
-                <img src={a.images?.[0]?.url} className="w-full aspect-square mb-3 object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all border-[3px] border-dark-700" alt=""/>
-                <h3 className="font-extrabold text-black uppercase tracking-tight truncate text-lg">{a.name}</h3>
-                <p className="text-xs text-dark-500 font-bold uppercase tracking-widest truncate">{a.artists?.map(x=>x.name).join(', ')}</p>
-                <p className="text-xs font-mono text-brand-500 font-bold">{a.release_date?.slice(0,4)}</p>
-              </div>
-            ))}
-          </div>
+          <section className="win95-window mb-10">
+            <div className="win95-titlebar"><span>ALBUMS.EXE</span></div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 p-4 bg-dark-800">
+              {searchResults.albums.items.slice(0,searchTab==='albums'?15:5).map(a=>(
+                <div key={a.id} onClick={()=>onAlbum(a)} className="bg-white p-3 border-[4px] border-dark-700 shadow-[inset_2px_2px_0_0_rgba(255,255,255,0.5)] shadow-retro hover:shadow-retro-hover transition-transform cursor-pointer group">
+                  <img src={a.images?.[0]?.url} className="w-full aspect-square mb-3 object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all border-[3px] border-dark-700" alt=""/>
+                  <h3 className="font-extrabold text-black uppercase tracking-tight truncate text-lg">{a.name}</h3>
+                  <p className="text-xs text-[#0000A0] font-bold uppercase tracking-widest truncate">{a.artists?.map(x=>x.name).join(', ')}</p>
+                  <p className="text-xs font-mono text-brand-500 font-bold">{a.release_date?.slice(0,4)}</p>
+                </div>
+              ))}
+            </div>
+          </section>
         </>}
       </>}
     </div>
@@ -277,44 +297,49 @@ function ArtistPage({ artist, onBack, onArtist, onAlbum, onReview, onPlaylist })
 
   return (
     <div>
-      <button onClick={onBack} className="flex items-center gap-2 text-black bg-white border-[4px] border-dark-700 shadow-retro hover:shadow-retro-hover px-4 py-2 font-extrabold uppercase tracking-widest mb-6 transition-transform"><ArrowLeft size={20} strokeWidth={3}/>Back</button>
+      <button onClick={onBack} className="win95-button px-4 py-2 text-sm mb-6 w-max"><ArrowLeft size={16} strokeWidth={3} className="mr-1"/>BACK</button>
 
-      <div className="flex gap-6 mb-12">
-        <img src={img} className="w-48 h-48 object-cover border-[4px] border-dark-700 shadow-retro grayscale hover:grayscale-0 transition-all" alt=""/>
-        <div className="flex flex-col justify-end bg-white border-[4px] border-dark-700 shadow-retro p-6 flex-1">
-          <p className="text-xs uppercase tracking-widest font-mono text-dark-500 font-bold mb-1 border-2 border-dark-700 inline-block px-1 w-max">Artist</p>
-          <h1 className="text-5xl font-extrabold text-brand-500 tracking-tighter mb-2 uppercase" style={{ textShadow: '2px 2px 0px #000' }}>{artist.name}</h1>
-          <p className="text-dark-700 font-bold uppercase tracking-widest text-sm mb-4">{artist.genres?.slice(0,3).join(' · ') || 'Music'}</p>
-          <div className="flex items-center gap-6">
-            {followers && <span className="text-white bg-dark-700 px-2 border-2 border-dark-700 font-mono text-sm font-bold">{followers.toLocaleString()} FOLLOWERS</span>}
-            <a href={spotifyUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-brand-500 text-sm font-extrabold hover:underline uppercase tracking-widest"><ExternalLink size={18} strokeWidth={3}/>Spotify</a>
-            <button onClick={()=>onReview({...artist, entity_type: 'artist'})} className="flex items-center gap-1 text-black text-sm font-extrabold hover:text-brand-500 uppercase tracking-widest"><Disc3 size={18} strokeWidth={3}/>Review</button>
+      <div className="flex gap-6 mb-12 flex-wrap sm:flex-nowrap">
+        <img src={img} className="w-48 h-48 object-cover border-[4px] border-dark-700 shadow-[inset_2px_2px_0_0_rgba(255,255,255,0.5)] shadow-retro grayscale hover:grayscale-0 transition-all" alt=""/>
+        <div className="win95-window flex-1">
+          <div className="win95-titlebar"><span>{artist.name.toUpperCase()}.INFO</span></div>
+          <div className="flex flex-col justify-end bg-dark-800 p-6 flex-1">
+            <p className="text-xs uppercase tracking-widest font-mono text-dark-500 font-bold mb-1 border-2 border-dark-700 inline-block px-1 w-max">Artist</p>
+            <h1 className="text-5xl font-extrabold text-brand-500 tracking-tighter mb-2 uppercase" style={{ textShadow: '2px 2px 0px #000' }}>{artist.name}</h1>
+            <p className="text-black font-bold uppercase tracking-widest text-sm mb-4">{artist.genres?.slice(0,3).join(' · ') || 'Music'}</p>
+            <div className="flex flex-wrap items-center gap-4">
+              {followers && <span className="win95-inset px-2 py-1 font-mono text-sm font-bold">{followers.toLocaleString()} FOLLOWERS</span>}
+              <a href={spotifyUrl} target="_blank" rel="noopener noreferrer" className="win95-button px-3 py-1 text-sm"><ExternalLink size={16} strokeWidth={3} className="mr-1"/>SPOTIFY</a>
+              <button onClick={()=>onReview({...artist, entity_type: 'artist'})} className="win95-button px-3 py-1 text-sm"><Disc3 size={16} strokeWidth={3} className="mr-1"/>REVIEW</button>
+            </div>
           </div>
         </div>
       </div>
 
       {loading ? <Spinner/> : (
         <div className="space-y-12">
-          <div className="p-6 border-[4px] border-dark-700 bg-white shadow-retro">
-            <h2 className="text-2xl font-extrabold text-brand-500 mb-6 uppercase tracking-tighter" style={{ textShadow: '1px 1px 0px #000' }}>Artist Reviews</h2>
-            <ReviewsPanel trackId={artist.id} padding="pl-0" />
+          <div className="win95-window">
+            <div className="win95-titlebar"><span>REVIEWS.TXT</span></div>
+            <div className="p-6 bg-dark-800">
+              <ReviewsPanel trackId={artist.id} padding="pl-0" />
+            </div>
           </div>
           {tracks.length > 0 && (
-            <section className="bg-white border-[4px] border-dark-700 shadow-retro p-6">
-              <h2 className="text-2xl font-extrabold text-brand-500 mb-6 uppercase tracking-tighter" style={{ textShadow: '1px 1px 0px #000' }}>Popular Tracks</h2>
-              <div className="space-y-2">{tracks.map(t=><TrackRow key={t.id} track={t} onReview={onReview} onPlaylist={onPlaylist}/>)}</div>
+            <section className="win95-window">
+              <div className="win95-titlebar"><span>TOP_TRACKS.EXE</span></div>
+              <div className="space-y-2 p-4 bg-dark-800">{tracks.map(t=><TrackRow key={t.id} track={t} onReview={onReview} onPlaylist={onPlaylist}/>)}</div>
             </section>
           )}
 
           {albums.length > 0 && (
-            <section>
-              <h2 className="text-2xl font-extrabold text-brand-500 mb-6 uppercase tracking-tighter bg-white inline-block px-3 py-1 border-[4px] border-dark-700 shadow-retro">Discography</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+            <section className="win95-window">
+              <div className="win95-titlebar"><span>DISCOGRAPHY.EXE</span></div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 p-4 bg-dark-800">
                 {albums.map(a=>(
-                  <div key={a.id} onClick={()=>onAlbum(a)} className="bg-white p-3 border-[4px] border-dark-700 shadow-retro hover:shadow-retro-hover transition-transform cursor-pointer group">
+                  <div key={a.id} onClick={()=>onAlbum(a)} className="bg-white p-3 border-[4px] border-dark-700 shadow-[inset_2px_2px_0_0_rgba(255,255,255,0.5)] shadow-retro hover:shadow-retro-hover transition-transform cursor-pointer group">
                     <img src={a.images?.[0]?.url} className="w-full aspect-square mb-3 object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all border-[3px] border-dark-700" alt=""/>
                     <h3 className="font-extrabold text-black uppercase tracking-tight truncate text-lg">{a.name}</h3>
-                    <p className="text-xs text-dark-500 font-bold uppercase tracking-widest">{a.release_date?.slice(0,4)}</p>
+                    <p className="text-xs text-[#0000A0] font-bold uppercase tracking-widest">{a.release_date?.slice(0,4)}</p>
                   </div>
                 ))}
               </div>
@@ -363,57 +388,62 @@ function AlbumPage({ album: albumProp, onBack, onArtist, onReview, onPlaylist })
 
   return (
     <div>
-      <button onClick={onBack} className="flex items-center gap-2 text-black bg-white border-[4px] border-dark-700 shadow-retro hover:shadow-retro-hover px-4 py-2 font-extrabold uppercase tracking-widest mb-6 transition-transform"><ArrowLeft size={20} strokeWidth={3}/>Back</button>
+      <button onClick={onBack} className="win95-button px-4 py-2 text-sm mb-6 w-max"><ArrowLeft size={16} strokeWidth={3} className="mr-1"/>BACK</button>
 
-      <div className="flex gap-6 mb-12">
-        <img src={img} className="w-48 h-48 object-cover border-[4px] border-dark-700 shadow-retro grayscale hover:grayscale-0 transition-all" alt=""/>
-        <div className="flex flex-col justify-end bg-white border-[4px] border-dark-700 shadow-retro p-6 flex-1">
-          <p className="text-xs uppercase tracking-widest font-mono text-dark-500 font-bold mb-1 border-2 border-dark-700 inline-block px-1 w-max">{album.album_type || 'Album'}</p>
-          <h1 className="text-5xl font-extrabold text-brand-500 tracking-tighter mb-2 uppercase" style={{ textShadow: '2px 2px 0px #000' }}>{album.name}</h1>
-          <div className="flex items-center gap-2 font-mono text-dark-700 font-bold text-sm mb-4 uppercase tracking-widest">
-            {album.artists?.map((a,i) => (
-              <span key={a.id}>
-                <button onClick={()=>onArtist(a)} className="hover:text-brand-500 hover:underline transition-colors">{a.name}</button>
-                {i < album.artists.length - 1 && ', '}
-              </span>
-            ))}
-            <span>· {album.release_date?.slice(0,4)}</span>
-            {tracks.length > 0 && <span>· {tracks.length} tracks, {mins} min</span>}
-          </div>
-          <div className="flex items-center gap-6">
-            <a href={spotifyUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-brand-500 text-sm font-extrabold hover:underline uppercase tracking-widest"><ExternalLink size={18} strokeWidth={3}/>Spotify</a>
-            <button onClick={()=>onReview({...album, entity_type: 'album'})} className="flex items-center gap-1 text-black text-sm font-extrabold hover:text-brand-500 uppercase tracking-widest"><Disc3 size={18} strokeWidth={3}/>Review</button>
+      <div className="flex gap-6 mb-12 flex-wrap sm:flex-nowrap">
+        <img src={img} className="w-48 h-48 object-cover border-[4px] border-dark-700 shadow-[inset_2px_2px_0_0_rgba(255,255,255,0.5)] shadow-retro grayscale hover:grayscale-0 transition-all" alt=""/>
+        <div className="win95-window flex-1">
+          <div className="win95-titlebar"><span>{album.name.toUpperCase()}.INFO</span></div>
+          <div className="flex flex-col justify-end bg-dark-800 p-6 flex-1">
+            <p className="text-xs uppercase tracking-widest font-mono text-dark-500 font-bold mb-1 border-2 border-dark-700 inline-block px-1 w-max">{album.album_type || 'Album'}</p>
+            <h1 className="text-5xl font-extrabold text-brand-500 tracking-tighter mb-2 uppercase" style={{ textShadow: '2px 2px 0px #000' }}>{album.name}</h1>
+            <div className="flex items-center gap-2 font-mono text-black font-bold text-sm mb-4 uppercase tracking-widest">
+              {album.artists?.map((a,i) => (
+                <span key={a.id}>
+                  <button onClick={()=>onArtist(a)} className="hover:text-brand-500 hover:underline transition-colors">{a.name}</button>
+                  {i < album.artists.length - 1 && ', '}
+                </span>
+              ))}
+              <span>· {album.release_date?.slice(0,4)}</span>
+              {tracks.length > 0 && <span>· {tracks.length} tracks, {mins} min</span>}
+            </div>
+            <div className="flex flex-wrap items-center gap-4">
+              <a href={spotifyUrl} target="_blank" rel="noopener noreferrer" className="win95-button px-3 py-1 text-sm"><ExternalLink size={16} strokeWidth={3} className="mr-1"/>SPOTIFY</a>
+              <button onClick={()=>onReview({...album, entity_type: 'album'})} className="win95-button px-3 py-1 text-sm"><Disc3 size={16} strokeWidth={3} className="mr-1"/>REVIEW</button>
+            </div>
           </div>
         </div>
       </div>
 
       {loading ? <Spinner/> : (
         <div className="space-y-12">
-          <div className="p-6 border-[4px] border-dark-700 bg-white shadow-retro">
-            <h2 className="text-2xl font-extrabold text-brand-500 mb-6 uppercase tracking-tighter" style={{ textShadow: '1px 1px 0px #000' }}>Album Reviews</h2>
-            <ReviewsPanel trackId={album.id} padding="pl-0" />
+          <div className="win95-window">
+            <div className="win95-titlebar"><span>REVIEWS.TXT</span></div>
+            <div className="p-6 bg-dark-800">
+              <ReviewsPanel trackId={album.id} padding="pl-0" />
+            </div>
           </div>
-          <div className="bg-white border-[4px] border-dark-700 shadow-retro p-6">
-            <h2 className="text-2xl font-extrabold text-brand-500 mb-6 uppercase tracking-tighter" style={{ textShadow: '1px 1px 0px #000' }}>Album Tracks</h2>
-            <div className="space-y-2">
-          {tracks.map((t, i) => {
-            const durMin = Math.floor((t.duration_ms||0)/60000);
-            const durSec = Math.floor(((t.duration_ms||0)%60000)/1000).toString().padStart(2,'0');
-            return (
-              <div key={t.id} className="flex items-center gap-4 p-2 border-b border-dark-400 hover:bg-gray-100 transition-colors group">
-                <span className="text-dark-500 font-bold text-sm w-6 text-right shrink-0">{i+1}</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-black font-bold text-sm truncate">{t.name}</p>
-                  <p className="text-dark-600 text-xs truncate">{t.artists?.map(a=>a.name).join(', ')}</p>
-                </div>
-                <span className="text-dark-600 font-mono text-sm shrink-0">{durMin}:{durSec}</span>
-                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <a href={`https://open.spotify.com/track/${t.id}`} target="_blank" rel="noopener noreferrer" className="text-dark-600 hover:text-brand-500 p-1"><ExternalLink size={16}/></a>
-                  <button onClick={()=>onReview(t)} className="text-white bg-dark-700 hover:bg-brand-500 p-2 border-2 border-dark-700 shadow-[2px_2px_0_0_#000]"><Disc3 size={16} strokeWidth={3}/></button>
-                </div>
-              </div>
-            );
-          })}
+          <div className="win95-window">
+            <div className="win95-titlebar"><span>TRACKS.EXE</span></div>
+            <div className="space-y-2 p-4 bg-dark-800">
+              {tracks.map((t, i) => {
+                const durMin = Math.floor((t.duration_ms||0)/60000);
+                const durSec = Math.floor(((t.duration_ms||0)%60000)/1000).toString().padStart(2,'0');
+                return (
+                  <div key={t.id} className="flex items-center gap-4 p-2 border-b border-dark-600 hover:bg-dark-500 transition-colors group">
+                    <span className="text-black font-bold text-sm w-6 text-right shrink-0">{i+1}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-black font-bold text-sm truncate">{t.name}</p>
+                      <p className="text-dark-700 text-xs truncate">{t.artists?.map(a=>a.name).join(', ')}</p>
+                    </div>
+                    <span className="text-black font-mono text-sm shrink-0">{durMin}:{durSec}</span>
+                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <a href={`https://open.spotify.com/track/${t.id}`} target="_blank" rel="noopener noreferrer" className="win95-button px-2 py-1"><ExternalLink size={14}/></a>
+                      <button onClick={()=>onReview(t)} className="win95-button px-2 py-1"><Disc3 size={14}/></button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -440,19 +470,29 @@ function LibraryView() {
 
   return (
     <div>
-      <h1 className="text-5xl font-extrabold text-brand-500 tracking-tighter uppercase mb-10 bg-white inline-block px-4 py-2 border-[4px] border-dark-700 shadow-retro">Your Library</h1>
+      <div className="win95-window mb-10 inline-block w-full">
+        <div className="win95-titlebar"><span>LIBRARY.EXE</span></div>
+        <div className="bg-dark-800 p-6 flex justify-between items-center">
+          <h1 className="text-3xl font-extrabold text-brand-500 tracking-tighter uppercase" style={{ textShadow: '2px 2px 0px #000' }}>Your Library</h1>
+        </div>
+      </div>
       {loading ? <Spinner/> :
         playlists.length === 0 ? (
-          <div className="text-center py-20 bg-white border-[4px] border-dark-700 shadow-retro">
-            <Music size={64} strokeWidth={3} className="text-brand-500 mx-auto mb-6"/>
-            <p className="text-black font-extrabold uppercase tracking-widest text-xl mb-2">Your library is empty</p>
-            <p className="text-dark-700 font-bold">Search for songs and add them to playlists!</p>
+          <div className="win95-window">
+             <div className="win95-titlebar"><span>EMPTY.TXT</span></div>
+             <div className="text-center py-20 bg-dark-800">
+              <Music size={64} strokeWidth={3} className="text-brand-500 mx-auto mb-6"/>
+              <p className="text-black font-extrabold uppercase tracking-widest text-xl mb-2">Your library is empty</p>
+              <p className="text-dark-700 font-bold">Search for songs and add them to playlists!</p>
+            </div>
           </div>
         ) :
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
           {playlists.map(pl=>(
-            <div key={pl.PlaylistID} className="bg-white p-6 border-[4px] border-dark-700 shadow-retro transition-transform hover:shadow-retro-hover">
-              <div className="flex items-start justify-between mb-6 border-b-[3px] border-dark-700 pb-4">
+            <div key={pl.PlaylistID} className="win95-window transition-transform hover:shadow-retro-hover">
+              <div className="win95-titlebar"><span>{pl.Name.toUpperCase()}.LST</span></div>
+              <div className="p-6 bg-dark-800 flex-1">
+                <div className="flex items-start justify-between mb-6 border-b-[3px] border-dark-700 pb-4">
                 <div><h3 className="text-black font-extrabold text-2xl uppercase tracking-tighter">{pl.Name}</h3><p className="text-brand-500 font-mono font-bold">{(pl.Tracks||[]).length} tracks</p></div>
                 <div className="flex gap-2">
                   <button onClick={()=>setExpanded(expanded===pl.PlaylistID?null:pl.PlaylistID)} className="text-black bg-white hover:bg-yellow-200 p-2 border-[3px] border-dark-700 shadow-[2px_2px_0_0_#000] transition-colors">
@@ -470,6 +510,7 @@ function LibraryView() {
               {(pl.Tracks||[]).length > 3 && expanded!==pl.PlaylistID && (
                 <p className="text-brand-500 bg-white border-2 border-dark-700 inline-block px-2 font-mono font-bold text-xs mt-4 cursor-pointer hover:bg-yellow-200 text-black" onClick={()=>setExpanded(pl.PlaylistID)}>+{(pl.Tracks||[]).length - 3} MORE TRACKS</p>
               )}
+              </div>
             </div>
           ))}
         </div>}
