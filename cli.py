@@ -79,6 +79,66 @@ if __name__ == "__main__":
         else:
             print("No new releases found.")
 
+    elif command == "review":
+        print("What would you like to review?")
+        print("1. Artist\n2. Album\n3. Track")
+        choice = input("Enter 1, 2, or 3: ").strip()
+        types = {"1": "artist", "2": "album", "3": "track"}
+        entity_type = types.get(choice)
+        if not entity_type:
+            print("Invalid choice."); sys.exit(1)
+            
+        q = input(f"Enter the name of the {entity_type}: ").strip()
+        if not q: sys.exit(1)
+            
+        print(f"\nSearching for {entity_type} '{q}'...")
+        data = fetch_data(f"/search?q={urllib.parse.quote(q)}&type={entity_type}&limit=5")
+        
+        items = data.get(f"{entity_type}s", {}).get("items", [])
+        if not items:
+            print("No results found."); sys.exit(1)
+            
+        for i, item in enumerate(items):
+            artists = ", ".join([a["name"] for a in item.get("artists", [])]) if entity_type != "artist" else ""
+            desc = f"{item['name']} by {artists}" if artists else item['name']
+            print(f"[{i+1}] {desc}")
+            
+        sel = input(f"\nSelect the {entity_type} (1-{len(items)}): ").strip()
+        try:
+            selected = items[int(sel) - 1]
+        except:
+            print("Invalid selection."); sys.exit(1)
+            
+        print(f"\nYou selected: {selected['name']}")
+        rating = input("Enter your rating (1-5): ").strip()
+        try:
+            r = float(rating)
+            if r < 1 or r > 5: raise ValueError()
+        except:
+            print("Rating must be a number between 1 and 5."); sys.exit(1)
+            
+        review_text = input("Enter your review: ").strip()
+        user_name = input("Enter your name (optional): ").strip() or "Anonymous"
+        
+        payload = {
+            "track_id": selected["id"],
+            "user_id": f"cli_user_{urllib.parse.quote(user_name.lower())}",
+            "user_name": user_name,
+            "rating": r,
+            "review_text": review_text,
+            "entity_type": entity_type,
+            "track_name": selected["name"],
+            "artist_name": ", ".join([a["name"] for a in selected.get("artists", [])]) if entity_type != "artist" else selected["name"],
+            "album_art": selected.get("images", [{"url":""}])[0]["url"] if "images" in selected and selected["images"] else (selected.get("album", {}).get("images", [{"url":""}])[0]["url"] if "album" in selected and selected["album"].get("images") else "")
+        }
+        
+        try:
+            req = urllib.request.Request(f"{API_URL}/reviews", data=json.dumps(payload).encode(), headers={'Content-Type': 'application/json'})
+            with urllib.request.urlopen(req) as response:
+                print("\n✅ Review submitted successfully!")
+        except Exception as e:
+            print(f"Error submitting review: {e}")
+
     else:
         print("Unknown command.")
         print_help()

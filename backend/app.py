@@ -147,6 +147,7 @@ def handler(event, context):
                 'Timestamp': timestamp,
                 'Rating': Decimal(str(rating)),
                 'ReviewText': review_text,
+                'EntityType': body.get('entity_type', 'track'),
                 'TrackName': body.get('track_name', ''),
                 'ArtistName': body.get('artist_name', ''),
                 'AlbumArt': body.get('album_art', '')
@@ -154,10 +155,10 @@ def handler(event, context):
             table.put_item(Item=item)
             return cors_response(201, {"message": "Review submitted", "review": item})
 
-        elif http_method == 'GET' and '/reviews/track/' in path:
-            track_id = path.split('/reviews/track/')[-1]
+        elif http_method == 'GET' and ('/reviews/track/' in path or '/reviews/item/' in path):
+            item_id = path.split('/')[-1]
             response = table.query(
-                KeyConditionExpression=Key('TrackID').eq(track_id)
+                KeyConditionExpression=Key('TrackID').eq(item_id)
             )
             return cors_response(200, {"reviews": response.get('Items', [])})
 
@@ -174,7 +175,8 @@ def handler(event, context):
         elif http_method == 'GET' and path == '/search':
             q = query_params.get('q', '')
             search_type = query_params.get('type', 'artist,track,album')
-            limit = query_params.get('limit', '10')
+            limit = int(query_params.get('limit', '10'))
+            if limit > 10: limit = 10
             if not q:
                 return cors_response(400, {"error": "Missing query"})
 
@@ -182,7 +184,7 @@ def handler(event, context):
             types = [t.strip() for t in search_type.split(',')]
             for t in types:
                 try:
-                    r = spotify_get("/search", {"q": q, "type": t, "limit": int(limit), "market": "US"})
+                    r = spotify_get("/search", {"q": q, "type": t, "limit": limit, "market": "US"})
                     key = t + "s"  # artist -> artists, track -> tracks, album -> albums
                     if key in r:
                         result[key] = r[key]

@@ -30,13 +30,20 @@ export function ReviewModal({ track, onClose }) {
     if (!rating) return;
     setSubmitting(true);
     try {
+      const isArtist = track.entity_type === 'artist';
+      const isAlbum = track.entity_type === 'album';
+      const entityLabel = track.entity_type ? track.entity_type.charAt(0).toUpperCase() + track.entity_type.slice(1) : 'Track';
+      const imgUrl = isArtist ? track.images?.[0]?.url : (track.album?.images?.[0]?.url || track.images?.[0]?.url);
+      const artName = isArtist ? track.name : (track.artists?.map(a=>a.name).join(', '));
+      
       await fetch(`${API}/reviews`, {
         method: 'POST', headers: {'Content-Type':'application/json'},
         body: JSON.stringify({
           track_id: track.id, rating, review_text: text,
           user_id: getUserId(), user_name: profile.name || 'Anonymous',
-          track_name: track.name, artist_name: track.artists?.[0]?.name || '',
-          album_art: track.album?.images?.[0]?.url || ''
+          entity_type: track.entity_type || 'track',
+          track_name: track.name, artist_name: artName || '',
+          album_art: imgUrl || ''
         })
       });
       setDone(true);
@@ -53,10 +60,11 @@ export function ReviewModal({ track, onClose }) {
           <button onClick={onClose} className="text-dark-400 hover:text-white"><X size={20}/></button>
         </div>
         <div className="flex gap-4 mb-6">
-          <img src={track.album?.images?.[0]?.url} className="w-16 h-16 rounded-lg" alt="" />
+          <img src={track.images?.[0]?.url || track.album?.images?.[0]?.url} className={`w-16 h-16 object-cover ${track.entity_type==='artist'?'rounded-full':'rounded-lg'}`} alt="" />
           <div className="min-w-0">
+            <p className="text-xs uppercase tracking-widest text-dark-400 font-bold mb-0.5">{track.entity_type || 'Track'}</p>
             <p className="text-white font-bold truncate">{track.name}</p>
-            <p className="text-dark-400 text-sm">{track.artists?.[0]?.name}</p>
+            {track.entity_type !== 'artist' && <p className="text-dark-400 text-sm">{track.artists?.map(a=>a.name).join(', ')}</p>}
           </div>
         </div>
         {done ? (
@@ -128,16 +136,16 @@ export function PlaylistModal({ track, onClose }) {
   );
 }
 
-export function ReviewsPanel({ trackId }) {
+export function ReviewsPanel({ trackId, padding = "pl-16" }) {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
-    fetch(`${API}/reviews/track/${trackId}`).then(r=>r.json()).then(d=>{setReviews(d.reviews||[]);setLoading(false);}).catch(()=>setLoading(false));
+    fetch(`${API}/reviews/item/${trackId}`).then(r=>r.json()).then(d=>{setReviews(d.reviews||[]);setLoading(false);}).catch(()=>setLoading(false));
   }, [trackId]);
-  if (loading) return <div className="py-3 pl-16"><div className="w-5 h-5 border-2 border-brand-500 border-t-transparent rounded-full animate-spin"/></div>;
-  if (!reviews.length) return <p className="text-dark-500 text-xs pl-16 py-2">No reviews yet. Be the first!</p>;
+  if (loading) return <div className={`py-3 ${padding}`}><div className="w-5 h-5 border-2 border-brand-500 border-t-transparent rounded-full animate-spin"/></div>;
+  if (!reviews.length) return <p className={`text-dark-500 text-xs py-2 ${padding}`}>No reviews yet. Be the first!</p>;
   return (
-    <div className="pl-16 pr-4 pb-3 space-y-3">
+    <div className={`${padding} pr-4 pb-3 space-y-3`}>
       {reviews.slice(0,5).map((r,i) => (
         <div key={i} className="bg-dark-800/60 rounded-lg p-3 border border-dark-700/40">
           <div className="flex items-center gap-2 mb-1">

@@ -170,6 +170,9 @@ class TastelyticsStack(Stack):
         track_resource = reviews_resource.add_resource("track").add_resource("{track_id}")
         track_resource.add_method("GET", lambda_integration)
 
+        item_resource = reviews_resource.add_resource("item").add_resource("{item_id}")
+        item_resource.add_method("GET", lambda_integration)
+
         user_resource = reviews_resource.add_resource("user").add_resource("{user_id}")
         user_resource.add_method("GET", lambda_integration)
 

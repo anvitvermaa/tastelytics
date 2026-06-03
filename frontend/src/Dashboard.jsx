@@ -215,11 +215,11 @@ function ArtistPage({ artist, onBack, onArtist, onAlbum, onReview, onPlaylist })
   useEffect(() => {
     setLoading(true);
     Promise.all([
-      fetch(`${API}/artist/${artist.id}`).then(r=>r.json()).catch(()=>({})),
+      fetch(`${API}/artist/${artist.id}/top-tracks`).then(r=>r.json()).catch(()=>({})),
       fetch(`${API}/artist/${artist.id}/albums`).then(r=>r.json()).catch(()=>({})),
       fetch(`${API}/artist/${artist.id}/related`).then(r=>r.json()).catch(()=>({}))
     ]).then(([detail, alb, rel]) => {
-      setTracks(detail.top_tracks || []);
+      setTracks(detail.tracks || []);
       setAlbums(alb.items || []);
       setRelated(rel.artists || []);
       setLoading(false);
@@ -243,12 +243,17 @@ function ArtistPage({ artist, onBack, onArtist, onAlbum, onReview, onPlaylist })
           <div className="flex items-center gap-4">
             {followers && <span className="text-dark-500 text-xs">{followers.toLocaleString()} followers</span>}
             <a href={spotifyUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-brand-500 text-xs font-bold hover:underline"><ExternalLink size={14}/>Open in Spotify</a>
+            <button onClick={()=>onReview({...artist, entity_type: 'artist'})} className="flex items-center gap-1 text-yellow-400 hover:text-yellow-300 text-xs font-bold"><Disc3 size={14}/>Review Artist</button>
           </div>
         </div>
       </div>
 
       {loading ? <Spinner/> : (
         <div className="space-y-10">
+          <div className="bg-dark-800/20 p-6 rounded-2xl border border-dark-700/50">
+            <h2 className="text-xl font-bold text-white mb-4">Artist Reviews</h2>
+            <ReviewsPanel trackId={artist.id} padding="pl-0" />
+          </div>
           {tracks.length > 0 && (
             <section>
               <h2 className="text-xl font-bold text-white mb-4">Popular Tracks</h2>
@@ -330,12 +335,22 @@ function AlbumPage({ album: albumProp, onBack, onArtist, onReview, onPlaylist })
             <span>· {album.release_date?.slice(0,4)}</span>
             {tracks.length > 0 && <span>· {tracks.length} tracks, {mins} min</span>}
           </div>
-          <a href={spotifyUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-brand-500 text-sm font-bold hover:underline w-fit"><ExternalLink size={14}/>Open in Spotify</a>
+          <div className="flex items-center gap-4">
+            <a href={spotifyUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-brand-500 text-sm font-bold hover:underline"><ExternalLink size={14}/>Open in Spotify</a>
+            <button onClick={()=>onReview({...album, entity_type: 'album'})} className="flex items-center gap-1 text-yellow-400 hover:text-yellow-300 text-sm font-bold"><Disc3 size={14}/>Review Album</button>
+          </div>
         </div>
       </div>
 
       {loading ? <Spinner/> : (
-        <div className="space-y-1">
+        <div className="space-y-6">
+          <div className="bg-dark-800/20 p-6 rounded-2xl border border-dark-700/50">
+            <h2 className="text-xl font-bold text-white mb-4">Album Reviews</h2>
+            <ReviewsPanel trackId={album.id} padding="pl-0" />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-white mb-4">Album Tracks</h2>
+            <div className="space-y-1">
           {tracks.map((t, i) => {
             const durMin = Math.floor((t.duration_ms||0)/60000);
             const durSec = Math.floor(((t.duration_ms||0)%60000)/1000).toString().padStart(2,'0');
@@ -354,6 +369,8 @@ function AlbumPage({ album: albumProp, onBack, onArtist, onReview, onPlaylist })
               </div>
             );
           })}
+            </div>
+          </div>
         </div>
       )}
     </div>
