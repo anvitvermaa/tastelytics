@@ -619,20 +619,7 @@ function AnalysisView({ onReview, onPlaylist, onArtist }) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="win95-window">
-          <div className="win95-titlebar"><span>TOP_GENRES.DAT</span></div>
-          <div className="p-4 bg-dark-800">
-            <div className="flex flex-wrap gap-2">
-              {data.top_genres?.length > 0 ? data.top_genres.map((g, i) => (
-                <span key={i} className="win95-inset px-3 py-1 font-mono font-bold text-sm text-[#0000A0] uppercase border-[2px] border-dark-700">
-                  #{i+1} {g}
-                </span>
-              )) : (
-                <span className="font-mono font-bold text-sm text-black bg-white px-2 py-1 border-[2px] border-dark-700 uppercase">NO GENRE DATA FOUND FOR THIS TIME RANGE.</span>
-              )}
-            </div>
-          </div>
-        </div>
+
 
         <div className="win95-window">
           <div className="win95-titlebar"><span>TOP_ARTISTS.LST</span></div>
@@ -650,16 +637,15 @@ function AnalysisView({ onReview, onPlaylist, onArtist }) {
             )}
           </div>
         </div>
-      </div>
-
-      <div className="win95-window">
-        <div className="win95-titlebar"><span>TOP_TRACKS.LST</span></div>
-        <div className="p-4 bg-dark-800 space-y-2">
-          {data.top_tracks?.length > 0 ? data.top_tracks.slice(0, 10).map((t, i) => (
-             <TrackRow key={t.id} track={t} onReview={onReview} onPlaylist={onPlaylist} />
-          )) : (
-             <span className="font-mono font-bold text-sm text-black bg-white px-2 py-1 border-[2px] border-dark-700 uppercase inline-block">NO TRACK DATA FOUND FOR THIS TIME RANGE.</span>
-          )}
+        <div className="win95-window">
+          <div className="win95-titlebar"><span>TOP_TRACKS.LST</span></div>
+          <div className="p-4 bg-dark-800 space-y-2">
+            {data.top_tracks?.length > 0 ? data.top_tracks.slice(0, 10).map((t, i) => (
+               <TrackRow key={t.id} track={t} onReview={onReview} onPlaylist={onPlaylist} />
+            )) : (
+               <span className="font-mono font-bold text-sm text-black bg-white px-2 py-1 border-[2px] border-dark-700 uppercase inline-block">NO TRACK DATA FOUND FOR THIS TIME RANGE.</span>
+            )}
+          </div>
         </div>
       </div>
     </div>
