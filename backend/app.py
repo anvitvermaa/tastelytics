@@ -372,8 +372,10 @@ def handler(event, context):
             # Fetch Top Artists
             artists_resp = requests.get(f"https://api.spotify.com/v1/me/top/artists?time_range={time_range}&limit=20", headers=headers)
             if artists_resp.status_code != 200:
+                print("ARTIST FETCH ERROR:", artists_resp.text)
                 return cors_response(artists_resp.status_code, {"error": "Failed to fetch artists"})
             top_artists = artists_resp.json().get("items", [])
+            print(f"FETCHED {len(top_artists)} ARTISTS FOR TIME RANGE {time_range}")
             
             # Fetch Top Tracks
             tracks_resp = requests.get(f"https://api.spotify.com/v1/me/top/tracks?time_range={time_range}&limit=20", headers=headers)
@@ -384,8 +386,27 @@ def handler(event, context):
             for artist in top_artists:
                 for genre in artist.get("genres", []):
                     genre_counts[genre] = genre_counts.get(genre, 0) + 1
+            
+            # Fallback: if no genres found, try to extract them from the artists of top_tracks
+            if not genre_counts and top_tracks:
+                track_artist_ids = set()
+                for track in top_tracks:
+                    for a in track.get("artists", []):
+                        if a.get("id"):
+                            track_artist_ids.add(a.get("id"))
+                
+                track_artist_ids = list(track_artist_ids)[:50] # Spotify API limit is 50 for /artists
+                if track_artist_ids:
+                    artists_url = f"https://api.spotify.com/v1/artists?ids={','.join(track_artist_ids)}"
+                    artists_info_resp = requests.get(artists_url, headers=headers)
+                    if artists_info_resp.status_code == 200:
+                        for artist in artists_info_resp.json().get("artists", []):
+                            for genre in artist.get("genres", []):
+                                genre_counts[genre] = genre_counts.get(genre, 0) + 1
+
             sorted_genres = sorted(genre_counts.items(), key=lambda x: x[1], reverse=True)
             top_genres = [g[0] for g in sorted_genres[:10]]
+            print(f"CALCULATED {len(top_genres)} GENRES:", top_genres)
             
             return cors_response(200, {
                 "top_artists": top_artists,
