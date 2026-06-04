@@ -628,7 +628,7 @@ function AnalysisView({ onReview, onPlaylist, onArtist }) {
                   #{i+1} {g}
                 </span>
               )) : (
-                <span className="font-mono font-bold text-sm text-dark-500 uppercase">NO GENRE DATA FOUND. LISTEN TO MORE MUSIC!</span>
+                <span className="font-mono font-bold text-sm text-black bg-white px-2 py-1 border-[2px] border-dark-700 uppercase">NO GENRE DATA FOUND FOR THIS TIME RANGE.</span>
               )}
             </div>
           </div>
@@ -646,7 +646,7 @@ function AnalysisView({ onReview, onPlaylist, onArtist }) {
                 </div>
               </div>
             )) : (
-              <span className="font-mono font-bold text-sm text-dark-500 uppercase">NO ARTIST DATA FOUND.</span>
+              <span className="font-mono font-bold text-sm text-black bg-white px-2 py-1 border-[2px] border-dark-700 uppercase">NO ARTIST DATA FOUND FOR THIS TIME RANGE.</span>
             )}
           </div>
         </div>
@@ -658,7 +658,7 @@ function AnalysisView({ onReview, onPlaylist, onArtist }) {
           {data.top_tracks?.length > 0 ? data.top_tracks.slice(0, 10).map((t, i) => (
              <TrackRow key={t.id} track={t} onReview={onReview} onPlaylist={onPlaylist} />
           )) : (
-             <span className="font-mono font-bold text-sm text-dark-500 uppercase">NO TRACK DATA FOUND.</span>
+             <span className="font-mono font-bold text-sm text-black bg-white px-2 py-1 border-[2px] border-dark-700 uppercase inline-block">NO TRACK DATA FOUND FOR THIS TIME RANGE.</span>
           )}
         </div>
       </div>
