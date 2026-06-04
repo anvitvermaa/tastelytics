@@ -623,11 +623,13 @@ function AnalysisView({ onReview, onPlaylist, onArtist }) {
           <div className="win95-titlebar"><span>TOP_GENRES.DAT</span></div>
           <div className="p-4 bg-dark-800">
             <div className="flex flex-wrap gap-2">
-              {data.top_genres?.map((g, i) => (
+              {data.top_genres?.length > 0 ? data.top_genres.map((g, i) => (
                 <span key={i} className="win95-inset px-3 py-1 font-mono font-bold text-sm text-[#0000A0] uppercase border-[2px] border-dark-700">
                   #{i+1} {g}
                 </span>
-              ))}
+              )) : (
+                <span className="font-mono font-bold text-sm text-dark-500 uppercase">NO GENRE DATA FOUND. LISTEN TO MORE MUSIC!</span>
+              )}
             </div>
           </div>
         </div>
@@ -635,7 +637,7 @@ function AnalysisView({ onReview, onPlaylist, onArtist }) {
         <div className="win95-window">
           <div className="win95-titlebar"><span>TOP_ARTISTS.LST</span></div>
           <div className="p-4 bg-dark-800 flex flex-col gap-3">
-            {data.top_artists?.slice(0, 5).map((a, i) => (
+            {data.top_artists?.length > 0 ? data.top_artists.slice(0, 5).map((a, i) => (
               <div key={a.id} className="flex items-center gap-4 win95-inset p-2 border-[2px] border-dark-700 cursor-pointer hover:bg-yellow-100" onClick={() => onArtist(a)}>
                 <span className="font-extrabold text-xl text-dark-600 w-6 text-center">{i+1}</span>
                 {a.images?.[0] && <img src={a.images[0].url} className="w-12 h-12 object-cover border-2 border-black" alt=""/>}
@@ -643,7 +645,9 @@ function AnalysisView({ onReview, onPlaylist, onArtist }) {
                   <p className="text-black font-extrabold uppercase truncate">{a.name}</p>
                 </div>
               </div>
-            ))}
+            )) : (
+              <span className="font-mono font-bold text-sm text-dark-500 uppercase">NO ARTIST DATA FOUND.</span>
+            )}
           </div>
         </div>
       </div>
@@ -651,9 +655,11 @@ function AnalysisView({ onReview, onPlaylist, onArtist }) {
       <div className="win95-window">
         <div className="win95-titlebar"><span>TOP_TRACKS.LST</span></div>
         <div className="p-4 bg-dark-800 space-y-2">
-          {data.top_tracks?.slice(0, 10).map((t, i) => (
+          {data.top_tracks?.length > 0 ? data.top_tracks.slice(0, 10).map((t, i) => (
              <TrackRow key={t.id} track={t} onReview={onReview} onPlaylist={onPlaylist} />
-          ))}
+          )) : (
+             <span className="font-mono font-bold text-sm text-dark-500 uppercase">NO TRACK DATA FOUND.</span>
+          )}
         </div>
       </div>
     </div>
