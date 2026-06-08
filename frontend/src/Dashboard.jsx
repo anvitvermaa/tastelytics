@@ -575,7 +575,7 @@ function AnalysisView({ onReview, onPlaylist, onArtist }) {
   const connectSpotify = () => {
     const clientId = '8acd7efe5e9749dc9ad9a39ba4faa007';
     const redirectUri = window.location.origin + '/';
-    const scope = 'user-top-read';
+    const scope = 'user-top-read user-read-email user-read-private';
     window.location.href = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}`;
   };
 
