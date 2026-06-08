@@ -27,26 +27,38 @@ export default function Dashboard() {
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
 
   useEffect(() => {
-    // Check for Spotify Auth Code
+    // PKCE Spotify Auth Code Exchange — directly with Spotify, no backend needed
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
     if (code) {
       setFeedLoading(true);
-      fetch(`${API}/auth/spotify`, {
+      const verifier = localStorage.getItem('spotify_pkce_verifier');
+      const clientId = '8acd7efe5e9749dc9ad9a39ba4faa007';
+      const redirectUri = window.location.origin + '/';
+      const body = new URLSearchParams({
+        client_id: clientId,
+        grant_type: 'authorization_code',
+        code,
+        redirect_uri: redirectUri,
+        code_verifier: verifier || ''
+      });
+      fetch('https://accounts.spotify.com/api/token', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, redirect_uri: window.location.origin + '/' })
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body.toString()
       }).then(r => r.json()).then(data => {
+        console.log('[SPOTIFY AUTH] token response:', data);
         if (data.access_token) {
           localStorage.setItem('tastelytics_spotify_token', data.access_token);
+          localStorage.removeItem('spotify_pkce_verifier');
           setView('analysis');
         } else {
-          alert('Spotify Authentication Failed: ' + JSON.stringify(data));
+          alert('Spotify Auth Failed: ' + JSON.stringify(data));
         }
         window.history.replaceState({}, document.title, window.location.pathname);
       }).catch(err => {
         console.error(err);
-        alert('Failed to reach authentication server: ' + err.message);
+        alert('Failed to reach Spotify: ' + err.message);
       }).finally(() => setFeedLoading(false));
     }
 
@@ -611,11 +623,19 @@ function AnalysisView({ onReview, onPlaylist, onArtist }) {
       .finally(() => setLoading(false));
   }, [timeRange]);
 
-  const connectSpotify = () => {
+  const connectSpotify = async () => {
     const clientId = '8acd7efe5e9749dc9ad9a39ba4faa007';
     const redirectUri = window.location.origin + '/';
     const scope = 'user-top-read user-read-email user-read-private user-read-currently-playing playlist-modify-public playlist-modify-private';
-    window.location.href = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&show_dialog=true`;
+    // Generate PKCE code verifier and challenge
+    const array = new Uint8Array(64);
+    crypto.getRandomValues(array);
+    const verifier = btoa(String.fromCharCode(...array)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+    const data = new TextEncoder().encode(verifier);
+    const digest = await crypto.subtle.digest('SHA-256', data);
+    const challenge = btoa(String.fromCharCode(...new Uint8Array(digest))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+    localStorage.setItem('spotify_pkce_verifier', verifier);
+    window.location.href = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&code_challenge_method=S256&code_challenge=${challenge}&show_dialog=true`;
   };
 
   if (loading) return <Spinner />;
@@ -835,16 +855,19 @@ function QuickBurnSection({ onBurn }) {
   );
 }
 
+
 function CDBurnerWidget({ burnQueue, setBurnQueue }) {
   const [burning, setBurning] = useState(false);
   const [status, setStatus] = useState('');
-  
+  const [playlistName, setPlaylistName] = useState('');
+
   const removeTrack = (id) => {
     setBurnQueue(burnQueue.filter(t => t.id !== id));
   };
 
   const burnPlaylist = async () => {
     if (burnQueue.length === 0) return;
+    const name = playlistName.trim() || 'My Tastelytics MixTape';
 
     const token = localStorage.getItem('tastelytics_spotify_token');
     if (!token) {
@@ -854,89 +877,54 @@ function CDBurnerWidget({ burnQueue, setBurnQueue }) {
 
     setBurning(true);
     setStatus('FETCHING PROFILE...');
-    
+
     try {
-      // Step 1: Get the actual Spotify user ID
+      // Step 1: Get Spotify user ID
       const meRes = await fetch('https://api.spotify.com/v1/me', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const me = await meRes.json();
-      console.log('[BURN] /me response:', meRes.status, me);
-      if (me.error || !me.id) {
-        setStatus(`STEP1 FAIL ${meRes.status}: ${me.error?.message || 'No user ID'}`);
+      console.log('[BURN] /me:', meRes.status, me);
+      if (!me.id) {
+        setStatus(`STEP1 FAIL ${meRes.status}: ${me.error?.message || 'No user'} — Reconnect Spotify!`);
         setBurning(false);
         return;
       }
-      const spotifyUserId = me.id;
 
-      setStatus('CHECKING PLAYLISTS...');
-      // Step 2: Check if 'Tastelytics MixTape' already exists
-      const plRes = await fetch('https://api.spotify.com/v1/me/playlists?limit=50', {
-        headers: { 'Authorization': `Bearer ${token}` }
+      setStatus('CREATING PLAYLIST...');
+      // Step 2: Create playlist with custom name
+      const createRes = await fetch(`https://api.spotify.com/v1/users/${me.id}/playlists`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, description: 'Burned with Tastelytics 💽', public: false })
       });
-      const plData = await plRes.json();
-      console.log('[BURN] /me/playlists response:', plRes.status, plData);
-      
-      let playlistId = null;
-      if (plData.items) {
-        const existing = plData.items.find(p => p.name === 'Tastelytics MixTape' && p.owner.id === spotifyUserId);
-        if (existing) playlistId = existing.id;
-      }
-
-      if (!playlistId) {
-        setStatus('CREATING PLAYLIST...');
-        // Step 2b: Create Playlist if it doesn't exist
-        const createRes = await fetch(`https://api.spotify.com/v1/users/${spotifyUserId}/playlists`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            name: 'Tastelytics MixTape',
-            description: 'A custom MixTape burned directly from Tastelytics!',
-            public: true
-          })
-        });
-        const playlist = await createRes.json();
-        console.log('[BURN] create playlist response:', createRes.status, playlist);
-        if (playlist.error || !playlist.id) {
-          setStatus(`STEP2 FAIL ${createRes.status}: ${playlist.error?.message || 'No playlist ID'}`);
-          setBurning(false);
-          return;
-        }
-        playlistId = playlist.id;
-      } else {
-        console.log('[BURN] Reusing existing playlist:', playlistId);
+      const playlist = await createRes.json();
+      console.log('[BURN] create playlist:', createRes.status, playlist);
+      if (!playlist.id) {
+        setStatus(`STEP2 FAIL ${createRes.status}: ${playlist.error?.message || 'Unknown'} — Disconnect & Reconnect Spotify!`);
+        setBurning(false);
+        return;
       }
 
       setStatus('BURNING TRACKS...');
-      // Step 3: Add Tracks to the playlist
-      const trackUris = burnQueue.map(t => `spotify:track:${t.id}`);
-      console.log('[BURN] adding track URIs:', trackUris);
-      const addRes = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
+      // Step 3: Add tracks
+      const addRes = await fetch(`https://api.spotify.com/v1/playlists/${playlist.id}/tracks`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ uris: trackUris })
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uris: burnQueue.map(t => `spotify:track:${t.id}`) })
       });
       const addData = await addRes.json();
-      console.log('[BURN] add tracks response:', addRes.status, addData);
+      console.log('[BURN] add tracks:', addRes.status, addData);
       if (addData.error) {
         setStatus(`STEP3 FAIL ${addRes.status}: ${addData.error.message}`);
         setBurning(false);
         return;
       }
-      
-      setStatus('BURN COMPLETE! Check Spotify!');
-      setTimeout(() => {
-        setBurnQueue([]);
-        setStatus('');
-        setBurning(false);
-      }, 4000);
-      
+
+      setStatus(`"${name}" BURNED! Check Spotify!`);
+      setPlaylistName('');
+      setTimeout(() => { setBurnQueue([]); setStatus(''); setBurning(false); }, 5000);
+
     } catch (err) {
       console.error('[BURN] exception:', err);
       setStatus('EXCEPTION: ' + (err.message || 'Unknown'));
@@ -944,7 +932,7 @@ function CDBurnerWidget({ burnQueue, setBurnQueue }) {
     }
   };
 
-  const capacity = 15; // Max 15 tracks per CD for retro feel
+  const capacity = 15;
   const used = burnQueue.length;
   const percentage = Math.min((used / capacity) * 100, 100);
 
@@ -952,9 +940,9 @@ function CDBurnerWidget({ burnQueue, setBurnQueue }) {
     <div className="win95-window">
       <div className="win95-titlebar"><span>CD_BURNER.EXE</span></div>
       <div className="p-4 bg-dark-800 flex flex-col gap-4">
-        
+
         <div className="flex gap-4 items-center bg-black border-[3px] border-dark-700 shadow-[inset_2px_2px_0_0_#333] p-3">
-          <div className={`w-16 h-16 rounded-full border-[3px] border-dark-600 bg-gradient-to-tr from-gray-400 to-gray-200 flex items-center justify-center shrink-0 ${burning ? 'animate-spin' : ''}`} style={{ background: 'conic-gradient(from 0deg, #9ca3af, #f3f4f6, #6b7280, #f3f4f6, #9ca3af)' }}>
+          <div className={`w-16 h-16 rounded-full border-[3px] border-dark-600 flex items-center justify-center shrink-0 ${burning ? 'animate-spin' : ''}`} style={{ background: 'conic-gradient(from 0deg, #9ca3af, #f3f4f6, #6b7280, #f3f4f6, #9ca3af)' }}>
              <div className="w-4 h-4 rounded-full bg-black border-2 border-dark-600"></div>
           </div>
           <div className="flex-1 min-w-0">
@@ -966,23 +954,35 @@ function CDBurnerWidget({ burnQueue, setBurnQueue }) {
           </div>
         </div>
 
+        {/* Playlist Name Input */}
+        <div className="flex gap-0">
+          <span className="bg-[#0000A0] text-white font-bold px-3 py-2 flex items-center border-[3px] border-dark-700 border-r-0 text-xs whitespace-nowrap">MIXTAPE NAME</span>
+          <input
+            type="text"
+            value={playlistName}
+            onChange={e => setPlaylistName(e.target.value)}
+            placeholder="e.g. Summer Vibes 2025..."
+            className="flex-1 win95-inset text-black placeholder-dark-500 px-3 py-2 border-[3px] border-dark-700 focus:outline-none focus:bg-yellow-100 font-bold text-sm"
+          />
+        </div>
+
         <div className="bg-white border-[3px] border-dark-700 shadow-[inset_2px_2px_0_0_rgba(0,0,0,0.1)] h-40 overflow-y-auto p-2 space-y-2">
-          {burnQueue.length === 0 && <p className="text-dark-500 font-bold text-center text-xs mt-12 uppercase tracking-widest">DRAG OR ADD TRACKS HERE</p>}
+          {burnQueue.length === 0 && <p className="text-dark-500 font-bold text-center text-xs mt-12 uppercase tracking-widest">ADD TRACKS ABOVE TO BURN</p>}
           {burnQueue.map((t, i) => (
              <div key={t.id + i} className="flex items-center gap-2 text-xs border-b border-dark-400 pb-1">
                 <span className="font-mono font-bold text-[#0000A0]">{String(i+1).padStart(2,'0')}</span>
                 <span className="font-bold text-black truncate flex-1">{t.name}</span>
-                <button onClick={() => removeTrack(t.id)} className="text-red-500 hover:text-red-700 font-bold">X</button>
+                <button onClick={() => removeTrack(t.id)} className="text-red-500 hover:text-red-700 font-bold px-1">X</button>
              </div>
           ))}
         </div>
 
-        <button 
-           onClick={burnPlaylist} 
+        <button
+           onClick={burnPlaylist}
            disabled={burning || burnQueue.length === 0}
            className="win95-button py-2 font-bold uppercase tracking-widest text-sm bg-[#f9f586] disabled:bg-dark-600 disabled:text-dark-500"
         >
-          {burning ? 'BURNING...' : 'BURN TO SPOTIFY'}
+          {burning ? 'BURNING...' : `BURN TO SPOTIFY${playlistName.trim() ? ` — "${playlistName.trim()}"` : ''}`}
         </button>
       </div>
     </div>
