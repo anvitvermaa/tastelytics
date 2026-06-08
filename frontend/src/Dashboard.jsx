@@ -869,33 +869,52 @@ function CDBurnerWidget({ burnQueue, setBurnQueue }) {
       }
       const spotifyUserId = me.id;
 
-      setStatus('CREATING PLAYLIST...');
-      // Step 2: Create Playlist
-      const createRes = await fetch(`https://api.spotify.com/v1/users/${spotifyUserId}/playlists`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          name: 'Tastelytics MixTape',
-          description: 'A custom MixTape burned directly from Tastelytics!',
-          public: false
-        })
+      setStatus('CHECKING PLAYLISTS...');
+      // Step 2: Check if 'Tastelytics MixTape' already exists
+      const plRes = await fetch('https://api.spotify.com/v1/me/playlists?limit=50', {
+        headers: { 'Authorization': `Bearer ${token}` }
       });
-      const playlist = await createRes.json();
-      console.log('[BURN] create playlist response:', createRes.status, playlist);
-      if (playlist.error || !playlist.id) {
-        setStatus(`STEP2 FAIL ${createRes.status}: ${playlist.error?.message || 'No playlist ID'}`);
-        setBurning(false);
-        return;
+      const plData = await plRes.json();
+      console.log('[BURN] /me/playlists response:', plRes.status, plData);
+      
+      let playlistId = null;
+      if (plData.items) {
+        const existing = plData.items.find(p => p.name === 'Tastelytics MixTape' && p.owner.id === spotifyUserId);
+        if (existing) playlistId = existing.id;
+      }
+
+      if (!playlistId) {
+        setStatus('CREATING PLAYLIST...');
+        // Step 2b: Create Playlist if it doesn't exist
+        const createRes = await fetch(`https://api.spotify.com/v1/users/${spotifyUserId}/playlists`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            name: 'Tastelytics MixTape',
+            description: 'A custom MixTape burned directly from Tastelytics!',
+            public: true
+          })
+        });
+        const playlist = await createRes.json();
+        console.log('[BURN] create playlist response:', createRes.status, playlist);
+        if (playlist.error || !playlist.id) {
+          setStatus(`STEP2 FAIL ${createRes.status}: ${playlist.error?.message || 'No playlist ID'}`);
+          setBurning(false);
+          return;
+        }
+        playlistId = playlist.id;
+      } else {
+        console.log('[BURN] Reusing existing playlist:', playlistId);
       }
 
       setStatus('BURNING TRACKS...');
       // Step 3: Add Tracks to the playlist
       const trackUris = burnQueue.map(t => `spotify:track:${t.id}`);
       console.log('[BURN] adding track URIs:', trackUris);
-      const addRes = await fetch(`https://api.spotify.com/v1/playlists/${playlist.id}/tracks`, {
+      const addRes = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
