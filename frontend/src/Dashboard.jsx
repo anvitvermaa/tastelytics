@@ -681,10 +681,12 @@ function VirtualCDPlayer({ tracks }) {
 
   // We only want tracks that have a preview_url
   const playableTracks = (tracks || []).filter(t => t.preview_url);
+  const canPlay = playableTracks.length > 0;
+  const currentTrack = canPlay ? playableTracks[currentTrackIndex] : (tracks && tracks.length > 0 ? tracks[0] : null);
 
   useEffect(() => {
     let newAudio = null;
-    if (playing && playableTracks.length > 0) {
+    if (playing && canPlay) {
       newAudio = new Audio(playableTracks[currentTrackIndex].preview_url);
       newAudio.volume = 0.5;
       newAudio.onended = () => {
@@ -701,21 +703,20 @@ function VirtualCDPlayer({ tracks }) {
         newAudio.src = '';
       }
     };
-  }, [playing, currentTrackIndex, playableTracks.length]);
+  }, [playing, currentTrackIndex, playableTracks.length, canPlay]);
 
   const togglePlay = () => {
-    if (playableTracks.length === 0) return;
+    if (!canPlay) {
+      alert("Spotify preview is not available for these tracks in your region.");
+      return;
+    }
     setPlaying(!playing);
   };
 
   const nextTrack = () => {
-    if (playableTracks.length === 0) return;
+    if (!canPlay) return;
     setCurrentTrackIndex((prev) => (prev + 1) % playableTracks.length);
   };
-
-  if (playableTracks.length === 0) return null;
-
-  const currentTrack = playableTracks[currentTrackIndex];
 
   return (
     <div className="win95-window">
@@ -724,7 +725,7 @@ function VirtualCDPlayer({ tracks }) {
         
         {/* CD Graphic */}
         <div 
-          className={`relative w-32 h-32 rounded-full border-[4px] border-dark-600 shadow-[inset_0_0_15px_rgba(0,0,0,1)] bg-gradient-to-tr from-gray-500 via-gray-300 to-gray-500 flex items-center justify-center cursor-pointer transition-transform hover:scale-105 ${playing ? 'animate-spin-slow' : ''}`}
+          className={`relative w-32 h-32 rounded-full border-[4px] border-dark-600 shadow-[inset_0_0_15px_rgba(0,0,0,1)] bg-gradient-to-tr from-gray-500 via-gray-300 to-gray-500 flex items-center justify-center transition-transform ${canPlay ? 'cursor-pointer hover:scale-105' : 'cursor-not-allowed'} ${playing ? 'animate-spin-slow' : ''}`}
           onClick={togglePlay}
           style={{ background: 'conic-gradient(from 0deg, #d1d5db, #f3f4f6, #9ca3af, #f3f4f6, #d1d5db)' }}
         >
@@ -734,7 +735,7 @@ function VirtualCDPlayer({ tracks }) {
            </div>
            
            {/* CD Art overlay */}
-           {currentTrack.album?.images?.[0]?.url && (
+           {currentTrack?.album?.images?.[0]?.url && (
              <img src={currentTrack.album.images[0].url} className="w-full h-full object-cover rounded-full mix-blend-overlay opacity-60 pointer-events-none" alt="" />
            )}
         </div>
@@ -742,16 +743,16 @@ function VirtualCDPlayer({ tracks }) {
         {/* Digital Display */}
         <div className="w-full mt-6 bg-black border-[3px] border-dark-700 shadow-[inset_2px_2px_0_0_#333] p-2 overflow-hidden h-10 flex items-center">
           <marquee scrollamount="4" className="text-brand-500 font-mono font-bold text-xs uppercase tracking-widest whitespace-nowrap">
-            {playing ? `▶ PLAYING: ${currentTrack.name} - ${currentTrack.artists?.[0]?.name}` : `|| PAUSED: ${currentTrack.name} - ${currentTrack.artists?.[0]?.name}`}
+            {!currentTrack ? '|| WAITING FOR MUSIC...' : !canPlay ? `|| NO PREVIEW: ${currentTrack.name} - ${currentTrack.artists?.[0]?.name}` : playing ? `▶ PLAYING: ${currentTrack.name} - ${currentTrack.artists?.[0]?.name}` : `|| READY: ${currentTrack.name} - ${currentTrack.artists?.[0]?.name}`}
           </marquee>
         </div>
 
         {/* Controls */}
         <div className="flex gap-2 mt-4 w-full">
-           <button onClick={togglePlay} className={`win95-button flex-1 py-1 font-bold text-sm ${playing ? 'bg-brand-500 text-white' : ''}`}>
+           <button onClick={togglePlay} className={`win95-button flex-1 py-1 font-bold text-sm ${playing ? 'bg-brand-500 text-white' : ''} ${!canPlay ? 'opacity-50 cursor-not-allowed' : ''}`}>
              {playing ? 'PAUSE' : 'PLAY'}
            </button>
-           <button onClick={nextTrack} className="win95-button flex-1 py-1 font-bold text-sm">
+           <button onClick={nextTrack} className={`win95-button flex-1 py-1 font-bold text-sm ${!canPlay ? 'opacity-50 cursor-not-allowed' : ''}`}>
              NEXT
            </button>
         </div>
