@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Library, PlayCircle, ArrowLeft, Music, Trash2, ChevronDown, ChevronUp, ExternalLink, Disc3 } from 'lucide-react';
+import { Search, Library, PlayCircle, ArrowLeft, Music, Trash2, ChevronDown, ChevronUp, ExternalLink, Disc3, Disc } from 'lucide-react';
 import { API, getUserId, TrackRow, ReviewModal, PlaylistModal, Spinner } from './components';
 
 export default function Dashboard() {
@@ -16,6 +16,8 @@ export default function Dashboard() {
   const [recTracks, setRecTracks] = useState([]);
   const [newReleases, setNewReleases] = useState([]);
   const [feedLoading, setFeedLoading] = useState(true);
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [profileAvatar, setProfileAvatar] = useState(localStorage.getItem('tastelytics_profile_avatar') || null);
   const searchTimer = useRef(null);
   const uid = getUserId();
 
@@ -76,10 +78,16 @@ export default function Dashboard() {
 
   const nav = (v) => { setView(v); if(v!=='search'){setSearchResults(null);setSearchQ('');} if(v!=='artist')setSelectedArtist(null); if(v!=='album')setSelectedAlbum(null); };
 
+  const disconnectSpotify = () => {
+    localStorage.removeItem('tastelytics_spotify_token');
+    window.location.reload();
+  };
+
   return (
     <div className="min-h-screen bg-dark-900 text-dark-100 font-sans pb-12">
       {reviewTrack && <ReviewModal track={reviewTrack} onClose={()=>setReviewTrack(null)}/>}
       {playlistTrack && <PlaylistModal track={playlistTrack} onClose={()=>setPlaylistTrack(null)}/>}
+      {showAvatarModal && <AvatarSelectionModal onClose={() => setShowAvatarModal(false)} setProfileAvatar={setProfileAvatar} />}
 
       <marquee scrollamount="8" className="w-full bg-[#0000A0] text-white font-mono font-bold py-1 border-b-[3px] border-dark-700 text-sm tracking-widest">
         *** WELCOME TO TASTELYTICS *** NEW RELEASES UPDATED DAILY *** DON'T FORGET TO SIGN THE GUESTBOOK *** BEST VIEWED IN NETSCAPE NAVIGATOR ***
@@ -144,14 +152,25 @@ export default function Dashboard() {
               <span>PROFILE.INI</span>
             </div>
             <div className="p-4 bg-dark-800">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-16 h-16 bg-brand-500 border-[3px] border-dark-700 shadow-[inset_2px_2px_0_0_rgba(255,255,255,0.5)] flex-shrink-0"></div>
+              <div className="flex items-center gap-4 mb-3">
+                <div 
+                  className="w-24 h-24 bg-brand-500 border-[3px] border-dark-700 shadow-[inset_2px_2px_0_0_rgba(255,255,255,0.5)] flex-shrink-0 cursor-pointer overflow-hidden group relative transition-transform hover:scale-105"
+                  onClick={() => setShowAvatarModal(true)}
+                >
+                  {profileAvatar && <img src={profileAvatar} className="w-full h-full object-cover" alt="Avatar"/>}
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                     <span className="text-white text-[10px] font-bold uppercase text-center leading-tight">Change<br/>Avatar</span>
+                  </div>
+                </div>
                 <div className="overflow-hidden">
                   <p className="text-black font-extrabold text-sm uppercase tracking-widest truncate">{profile.name || 'Anonymous User'}</p>
                   <p className="text-[#0000A0] font-bold text-xs uppercase tracking-widest mt-1">MEMBER</p>
                 </div>
               </div>
               <p className="text-black text-xs font-bold win95-inset p-2 mt-2"><strong>Likes:</strong> {profile.favorite_genres?.split(',').slice(0,3).join(', ')}</p>
+              <div className="mt-3 text-right">
+                <button onClick={disconnectSpotify} className="text-[10px] text-dark-500 hover:text-dark-400 font-mono underline decoration-dotted transition-colors">disconnect spotify</button>
+              </div>
             </div>
           </div>
 
@@ -160,9 +179,12 @@ export default function Dashboard() {
             <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-2xl drop-shadow-md z-10">📌</span>
             <p className="font-comic text-[#0000A0] text-xs leading-relaxed mt-2 text-center font-bold" style={{fontFamily: '"Comic Sans MS", cursive'}}>
               <strong>UPDATE!</strong> <span className="text-red-600 animate-blink">NEW!</span><br/>
-              Welcome to the page! Rate your favorite albums today. ~Anvit
+              Click your profile picture to try out the new Frutiger Aero avatars! ~Anvit
             </p>
           </div>
+
+          {/* Virtual CD Player */}
+          <VirtualCDPlayer tracks={recTracks} />
 
           {/* Visitor Counter */}
           <div className="win95-window">
@@ -645,6 +667,157 @@ function AnalysisView({ onReview, onPlaylist, onArtist }) {
             )) : (
                <span className="font-mono font-bold text-sm text-black bg-white px-2 py-1 border-[2px] border-dark-700 uppercase inline-block">NO TRACK DATA FOUND FOR THIS TIME RANGE.</span>
             )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── VIRTUAL CD PLAYER WIDGET ─── */
+function VirtualCDPlayer({ tracks }) {
+  const [playing, setPlaying] = useState(false);
+  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
+
+  // We only want tracks that have a preview_url
+  const playableTracks = (tracks || []).filter(t => t.preview_url);
+
+  useEffect(() => {
+    let newAudio = null;
+    if (playing && playableTracks.length > 0) {
+      newAudio = new Audio(playableTracks[currentTrackIndex].preview_url);
+      newAudio.volume = 0.5;
+      newAudio.onended = () => {
+        setCurrentTrackIndex((prev) => (prev + 1) % playableTracks.length);
+      };
+      newAudio.play().catch(e => {
+        console.error("Audio play blocked", e);
+        setPlaying(false);
+      });
+    }
+    return () => {
+      if (newAudio) {
+        newAudio.pause();
+        newAudio.src = '';
+      }
+    };
+  }, [playing, currentTrackIndex, playableTracks.length]);
+
+  const togglePlay = () => {
+    if (playableTracks.length === 0) return;
+    setPlaying(!playing);
+  };
+
+  const nextTrack = () => {
+    if (playableTracks.length === 0) return;
+    setCurrentTrackIndex((prev) => (prev + 1) % playableTracks.length);
+  };
+
+  if (playableTracks.length === 0) return null;
+
+  const currentTrack = playableTracks[currentTrackIndex];
+
+  return (
+    <div className="win95-window">
+      <div className="win95-titlebar"><span>CD_PLAYER.EXE</span></div>
+      <div className="bg-dark-800 p-4 flex flex-col items-center">
+        
+        {/* CD Graphic */}
+        <div 
+          className={`relative w-32 h-32 rounded-full border-[4px] border-dark-600 shadow-[inset_0_0_15px_rgba(0,0,0,1)] bg-gradient-to-tr from-gray-500 via-gray-300 to-gray-500 flex items-center justify-center cursor-pointer transition-transform hover:scale-105 ${playing ? 'animate-spin-slow' : ''}`}
+          onClick={togglePlay}
+          style={{ background: 'conic-gradient(from 0deg, #d1d5db, #f3f4f6, #9ca3af, #f3f4f6, #d1d5db)' }}
+        >
+           {/* Center hole */}
+           <div className="w-8 h-8 rounded-full bg-dark-800 border-2 border-dark-600 absolute shadow-[0_0_5px_rgba(0,0,0,0.5)] flex items-center justify-center">
+             <div className="w-2 h-2 rounded-full bg-dark-500"></div>
+           </div>
+           
+           {/* CD Art overlay */}
+           {currentTrack.album?.images?.[0]?.url && (
+             <img src={currentTrack.album.images[0].url} className="w-full h-full object-cover rounded-full mix-blend-overlay opacity-60 pointer-events-none" alt="" />
+           )}
+        </div>
+
+        {/* Digital Display */}
+        <div className="w-full mt-6 bg-black border-[3px] border-dark-700 shadow-[inset_2px_2px_0_0_#333] p-2 overflow-hidden h-10 flex items-center">
+          <marquee scrollamount="4" className="text-brand-500 font-mono font-bold text-xs uppercase tracking-widest whitespace-nowrap">
+            {playing ? `▶ PLAYING: ${currentTrack.name} - ${currentTrack.artists?.[0]?.name}` : `|| PAUSED: ${currentTrack.name} - ${currentTrack.artists?.[0]?.name}`}
+          </marquee>
+        </div>
+
+        {/* Controls */}
+        <div className="flex gap-2 mt-4 w-full">
+           <button onClick={togglePlay} className={`win95-button flex-1 py-1 font-bold text-sm ${playing ? 'bg-brand-500 text-white' : ''}`}>
+             {playing ? 'PAUSE' : 'PLAY'}
+           </button>
+           <button onClick={nextTrack} className="win95-button flex-1 py-1 font-bold text-sm">
+             NEXT
+           </button>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+/* ─── AVATAR SELECTION MODAL ─── */
+function AvatarSelectionModal({ onClose, setProfileAvatar }) {
+  const fileInputRef = useRef(null);
+  
+  const avatars = [
+    '/avatars/frutiger_aero_globe_1780906726810.png',
+    '/avatars/frutiger_aero_dolphin_1780906739409.png',
+    '/avatars/frutiger_aero_leaf_1780906751805.png'
+  ];
+
+  const handleSelect = (url) => {
+    localStorage.setItem('tastelytics_profile_avatar', url);
+    setProfileAvatar(url);
+    onClose();
+  };
+
+  const handleUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        localStorage.setItem('tastelytics_profile_avatar', reader.result);
+        setProfileAvatar(reader.result);
+        onClose();
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4">
+      <div className="win95-window w-full max-w-md animate-float">
+        <div className="win95-titlebar">
+          <span>AVATAR_CHOOSER.EXE</span>
+          <button onClick={onClose} className="win95-button w-5 h-5 text-xs font-bold text-black pb-1">X</button>
+        </div>
+        <div className="bg-dark-800 p-6 flex flex-col items-center">
+          <h2 className="text-2xl font-extrabold text-brand-500 tracking-tighter uppercase mb-4" style={{ textShadow: '2px 2px 0px #000' }}>Select Avatar</h2>
+          <p className="text-dark-700 text-sm font-bold mb-6 text-center">Choose a Frutiger Aero aesthetic or upload your own.</p>
+          
+          <div className="flex gap-4 justify-center mb-8">
+            {avatars.map(url => (
+              <img 
+                key={url} 
+                src={url} 
+                onClick={() => handleSelect(url)}
+                className="w-20 h-20 rounded-full object-cover border-[3px] border-dark-600 hover:border-brand-500 hover:scale-110 cursor-pointer transition-all shadow-[2px_2px_10px_rgba(0,0,0,0.5)]" 
+                alt="Frutiger Aero"
+              />
+            ))}
+          </div>
+
+          <div className="w-full border-t-[3px] border-dark-700 pt-6 text-center">
+             <input type="file" accept="image/*" ref={fileInputRef} onChange={handleUpload} className="hidden" />
+             <button onClick={() => fileInputRef.current?.click()} className="win95-button px-6 py-2 uppercase tracking-widest font-extrabold text-sm">
+                Upload Custom Image
+             </button>
           </div>
         </div>
       </div>
