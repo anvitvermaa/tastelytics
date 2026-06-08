@@ -493,7 +493,7 @@ function AlbumPage({ album: albumProp, onBack, onArtist, onReview, onPlaylist, o
                       <p className="text-dark-700 text-xs truncate">{t.artists?.map(a=>a.name).join(', ')}</p>
                     </div>
                     <span className="text-black font-mono text-sm shrink-0">{durMin}:{durSec}</span>
-                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex gap-2 flex-wrap sm:flex-nowrap">
                       <a href={`https://open.spotify.com/track/${t.id}`} target="_blank" rel="noopener noreferrer" className="win95-button px-2 py-1"><ExternalLink size={14}/></a>
                       <button onClick={()=>onBurn(t)} className="win95-button px-2 py-1 bg-[#f9f586]">💿</button>
                       <button onClick={()=>onReview(t)} className="win95-button px-2 py-1"><Disc3 size={14}/></button>

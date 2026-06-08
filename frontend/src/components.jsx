@@ -175,7 +175,7 @@ export function TrackRow({ track, onReview, onPlaylist, onBurn }) {
           <p className="text-black font-extrabold uppercase tracking-widest truncate text-sm">{track.name}</p>
           <p className="text-dark-600 font-bold uppercase tracking-widest text-xs truncate">{track.artists?.map(a=>a.name).join(', ')}</p>
         </div>
-        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex gap-2 flex-wrap sm:flex-nowrap">
           <a href={spotifyUrl} target="_blank" rel="noopener noreferrer" className="win95-button p-1.5" title="Open in Spotify"><ExternalLink size={16} strokeWidth={3}/></a>
           {onBurn && <button onClick={()=>onBurn(track)} className="win95-button p-1.5 bg-[#f9f586]" title="Add to CD Burner">💿</button>}
           <button onClick={()=>setShowReviews(!showReviews)} className="win95-button p-1.5" title="Reviews"><MessageCircle size={16} strokeWidth={3}/></button>
