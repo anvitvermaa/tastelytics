@@ -597,7 +597,7 @@ function AnalysisView({ onReview, onPlaylist, onArtist }) {
   const connectSpotify = () => {
     const clientId = '8acd7efe5e9749dc9ad9a39ba4faa007';
     const redirectUri = window.location.origin + '/';
-    const scope = 'user-top-read user-read-email user-read-private';
+    const scope = 'user-top-read user-read-email user-read-private user-read-currently-playing';
     window.location.href = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}`;
   };
 
@@ -675,86 +675,67 @@ function AnalysisView({ onReview, onPlaylist, onArtist }) {
 }
 
 /* ─── VIRTUAL CD PLAYER WIDGET ─── */
-function VirtualCDPlayer({ tracks }) {
-  const [playing, setPlaying] = useState(false);
-  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
-
-  // We only want tracks that have a preview_url
-  const playableTracks = (tracks || []).filter(t => t.preview_url);
-  const canPlay = playableTracks.length > 0;
-  const currentTrack = canPlay ? playableTracks[currentTrackIndex] : (tracks && tracks.length > 0 ? tracks[0] : null);
+function VirtualCDPlayer() {
+  const [liveTrack, setLiveTrack] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const token = localStorage.getItem('tastelytics_spotify_token');
 
   useEffect(() => {
-    let newAudio = null;
-    if (playing && canPlay) {
-      newAudio = new Audio(playableTracks[currentTrackIndex].preview_url);
-      newAudio.volume = 0.5;
-      newAudio.onended = () => {
-        setCurrentTrackIndex((prev) => (prev + 1) % playableTracks.length);
-      };
-      newAudio.play().catch(e => {
-        console.error("Audio play blocked", e);
-        setPlaying(false);
-      });
-    }
-    return () => {
-      if (newAudio) {
-        newAudio.pause();
-        newAudio.src = '';
-      }
+    if (!token) return;
+
+    const fetchCurrentlyPlaying = () => {
+      fetch('https://api.spotify.com/v1/me/player/currently-playing', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then(r => {
+        if (r.status === 204) {
+          // Nothing playing
+          setLiveTrack(null);
+          setIsPlaying(false);
+          return null;
+        }
+        return r.json();
+      })
+      .then(data => {
+        if (data && data.item) {
+          setLiveTrack(data.item);
+          setIsPlaying(data.is_playing);
+        }
+      })
+      .catch(err => console.error("Error fetching live track", err));
     };
-  }, [playing, currentTrackIndex, playableTracks.length, canPlay]);
 
-  const togglePlay = () => {
-    if (!canPlay) {
-      alert("Spotify preview is not available for these tracks in your region.");
-      return;
-    }
-    setPlaying(!playing);
-  };
-
-  const nextTrack = () => {
-    if (!canPlay) return;
-    setCurrentTrackIndex((prev) => (prev + 1) % playableTracks.length);
-  };
+    fetchCurrentlyPlaying();
+    const interval = setInterval(fetchCurrentlyPlaying, 10000);
+    return () => clearInterval(interval);
+  }, [token]);
 
   return (
     <div className="win95-window">
       <div className="win95-titlebar"><span>CD_PLAYER.EXE</span></div>
-      <div className="bg-dark-800 p-4 flex flex-col items-center">
+      <div className="bg-dark-800 p-6 flex flex-col items-center">
         
-        {/* CD Graphic */}
+        {/* CD Graphic - BIGGER: w-48 h-48 */}
         <div 
-          className={`relative w-32 h-32 rounded-full border-[4px] border-dark-600 shadow-[inset_0_0_15px_rgba(0,0,0,1)] bg-gradient-to-tr from-gray-500 via-gray-300 to-gray-500 flex items-center justify-center transition-transform ${canPlay ? 'cursor-pointer hover:scale-105' : 'cursor-not-allowed'} ${playing ? 'animate-spin-slow' : ''}`}
-          onClick={togglePlay}
+          className={`relative w-48 h-48 rounded-full border-[6px] border-dark-600 shadow-[inset_0_0_20px_rgba(0,0,0,1)] bg-gradient-to-tr from-gray-500 via-gray-300 to-gray-500 flex items-center justify-center ${isPlaying ? 'animate-spin-slow' : ''}`}
           style={{ background: 'conic-gradient(from 0deg, #d1d5db, #f3f4f6, #9ca3af, #f3f4f6, #d1d5db)' }}
         >
            {/* Center hole */}
-           <div className="w-8 h-8 rounded-full bg-dark-800 border-2 border-dark-600 absolute shadow-[0_0_5px_rgba(0,0,0,0.5)] flex items-center justify-center">
+           <div className="w-10 h-10 rounded-full bg-dark-800 border-2 border-dark-600 absolute shadow-[0_0_5px_rgba(0,0,0,0.5)] flex items-center justify-center z-10">
              <div className="w-2 h-2 rounded-full bg-dark-500"></div>
            </div>
            
-           {/* CD Art overlay */}
-           {currentTrack?.album?.images?.[0]?.url && (
-             <img src={currentTrack.album.images[0].url} className="w-full h-full object-cover rounded-full mix-blend-overlay opacity-60 pointer-events-none" alt="" />
+           {/* CD Art overlay - FULLY VISIBLE & ROTATING */}
+           {liveTrack?.album?.images?.[0]?.url && (
+             <img src={liveTrack.album.images[0].url} className="w-full h-full object-cover rounded-full" alt="" />
            )}
         </div>
 
         {/* Digital Display */}
         <div className="w-full mt-6 bg-black border-[3px] border-dark-700 shadow-[inset_2px_2px_0_0_#333] p-2 overflow-hidden h-10 flex items-center">
           <marquee scrollamount="4" className="text-brand-500 font-mono font-bold text-xs uppercase tracking-widest whitespace-nowrap">
-            {!currentTrack ? '|| WAITING FOR MUSIC...' : !canPlay ? `|| NO PREVIEW: ${currentTrack.name} - ${currentTrack.artists?.[0]?.name}` : playing ? `▶ PLAYING: ${currentTrack.name} - ${currentTrack.artists?.[0]?.name}` : `|| READY: ${currentTrack.name} - ${currentTrack.artists?.[0]?.name}`}
+            {!token ? '|| NOT CONNECTED TO SPOTIFY' : !liveTrack ? '|| WAITING FOR SPOTIFY...' : isPlaying ? `🔴 LIVE: ${liveTrack.name} - ${liveTrack.artists?.[0]?.name}` : `|| PAUSED: ${liveTrack.name} - ${liveTrack.artists?.[0]?.name}`}
           </marquee>
-        </div>
-
-        {/* Controls */}
-        <div className="flex gap-2 mt-4 w-full">
-           <button onClick={togglePlay} className={`win95-button flex-1 py-1 font-bold text-sm ${playing ? 'bg-brand-500 text-white' : ''} ${!canPlay ? 'opacity-50 cursor-not-allowed' : ''}`}>
-             {playing ? 'PAUSE' : 'PLAY'}
-           </button>
-           <button onClick={nextTrack} className={`win95-button flex-1 py-1 font-bold text-sm ${!canPlay ? 'opacity-50 cursor-not-allowed' : ''}`}>
-             NEXT
-           </button>
         </div>
 
       </div>
