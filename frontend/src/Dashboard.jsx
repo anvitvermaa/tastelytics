@@ -880,7 +880,7 @@ function CDBurnerWidget({ burnQueue, setBurnQueue }) {
         body: JSON.stringify({
           name: 'Tastelytics MixTape',
           description: 'A custom MixTape burned directly from Tastelytics!',
-          public: true
+          public: false
         })
       });
       const playlist = await createRes.json();
