@@ -839,32 +839,32 @@ function CDBurnerWidget({ burnQueue, setBurnQueue }) {
   const [burning, setBurning] = useState(false);
   const [status, setStatus] = useState('');
   
-  const token = localStorage.getItem('tastelytics_spotify_token');
-  const profile = JSON.parse(localStorage.getItem('tastelytics_profile') || '{}');
-  const uid = profile.id || getUserId();
-
   const removeTrack = (id) => {
     setBurnQueue(burnQueue.filter(t => t.id !== id));
   };
 
   const burnPlaylist = async () => {
-    if (burnQueue.length === 0 || !token || !uid || uid === 'anonymous') {
-      setStatus('ERROR: LOG IN TO SPOTIFY!');
+    if (burnQueue.length === 0) return;
+
+    const token = localStorage.getItem('tastelytics_spotify_token');
+    if (!token) {
+      setStatus('ERROR: CONNECT SPOTIFY FIRST!');
       return;
     }
+
     setBurning(true);
     setStatus('CREATING PLAYLIST...');
     
     try {
-      // 1. Create Playlist
-      const createRes = await fetch(`https://api.spotify.com/v1/users/${uid}/playlists`, {
+      // 1. Create Playlist using /me/playlists (no need for user ID)
+      const createRes = await fetch(`https://api.spotify.com/v1/me/playlists`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          name: 'Tastelytics MixTape 💽',
+          name: 'Tastelytics MixTape',
           description: 'A custom MixTape burned directly from Tastelytics!',
           public: true
         })
@@ -872,13 +872,16 @@ function CDBurnerWidget({ burnQueue, setBurnQueue }) {
       const playlist = await createRes.json();
       
       if (playlist.error) {
-        throw new Error(playlist.error.message);
+        // Token might be expired or missing playlist scope
+        setStatus(`FAILED: ${playlist.error.message}`);
+        setBurning(false);
+        return;
       }
 
       setStatus('BURNING TRACKS...');
       // 2. Add Tracks
       const trackUris = burnQueue.map(t => `spotify:track:${t.id}`);
-      await fetch(`https://api.spotify.com/v1/playlists/${playlist.id}/tracks`, {
+      const addRes = await fetch(`https://api.spotify.com/v1/playlists/${playlist.id}/tracks`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -886,17 +889,19 @@ function CDBurnerWidget({ burnQueue, setBurnQueue }) {
         },
         body: JSON.stringify({ uris: trackUris })
       });
+      const addData = await addRes.json();
+      if (addData.error) throw new Error(addData.error.message);
       
-      setStatus('BURN COMPLETE!');
+      setStatus('BURN COMPLETE! Check Spotify!');
       setTimeout(() => {
         setBurnQueue([]);
         setStatus('');
         setBurning(false);
-      }, 3000);
+      }, 4000);
       
     } catch (err) {
-      console.error(err);
-      setStatus('BURN FAILED!');
+      console.error('Burn error:', err);
+      setStatus('BURN FAILED: ' + (err.message || 'Unknown error'));
       setBurning(false);
     }
   };
