@@ -50,6 +50,8 @@ export default function Dashboard() {
         console.log('[SPOTIFY AUTH] token response:', data);
         if (data.access_token) {
           localStorage.setItem('tastelytics_spotify_token', data.access_token);
+          localStorage.setItem('tastelytics_spotify_scopes', data.scope || '');
+          console.log('[SPOTIFY AUTH] granted scopes:', data.scope);
           localStorage.removeItem('spotify_pkce_verifier');
           setView('analysis');
         } else {
@@ -877,6 +879,15 @@ function CDBurnerWidget({ burnQueue, setBurnQueue }) {
 
     setBurning(true);
     setStatus('FETCHING PROFILE...');
+
+    // Check if we have playlist scopes
+    const scopes = localStorage.getItem('tastelytics_spotify_scopes') || '';
+    console.log('[BURN] token scopes:', scopes);
+    if (!scopes.includes('playlist-modify')) {
+      setStatus('MISSING PLAYLIST PERMISSION! Go to spotify.com/account/apps → Remove Tastelytics → Reconnect here');
+      setBurning(false);
+      return;
+    }
 
     try {
       // Step 1: Get Spotify user ID
