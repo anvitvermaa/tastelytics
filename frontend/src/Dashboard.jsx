@@ -237,15 +237,21 @@ function HomeView({ feedArtists, recTracks, newReleases, feedLoading, onArtist, 
         </section>
       )}
 
+      {/* BURN QUICK SEARCH — always visible */}
+      <QuickBurnSection onBurn={onBurn} />
+
       {newReleases.length > 0 && (
         <section className="win95-window">
           <div className="win95-titlebar"><span>NEW_RELEASES.EXE</span></div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 p-4 bg-dark-800">
             {newReleases.map(a=>(
-              <div key={a.id} onClick={()=>onAlbum(a)} className="bg-white p-3 border-[4px] border-dark-700 shadow-[inset_2px_2px_0_0_rgba(255,255,255,0.5)] shadow-retro hover:shadow-retro-hover transition-transform cursor-pointer group">
-                <img src={a.images?.[0]?.url} className="w-full aspect-square mb-3 object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all border-[3px] border-dark-700" alt=""/>
-                <h3 className="font-extrabold text-black uppercase tracking-tight truncate text-lg">{a.name}</h3>
-                <p className="text-xs text-[#0000A0] font-bold uppercase tracking-widest truncate">{a.artists?.map(x=>x.name).join(', ')}</p>
+              <div key={a.id} className="bg-white p-3 border-[4px] border-dark-700 shadow-[inset_2px_2px_0_0_rgba(255,255,255,0.5)] shadow-retro hover:shadow-retro-hover transition-transform cursor-pointer group relative">
+                <div onClick={()=>onAlbum(a)}>
+                  <img src={a.images?.[0]?.url} className="w-full aspect-square mb-3 object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all border-[3px] border-dark-700" alt=""/>
+                  <h3 className="font-extrabold text-black uppercase tracking-tight truncate text-lg">{a.name}</h3>
+                  <p className="text-xs text-[#0000A0] font-bold uppercase tracking-widest truncate">{a.artists?.map(x=>x.name).join(', ')}</p>
+                </div>
+                <button onClick={(e)=>{e.stopPropagation(); onAlbum(a);}} className="mt-2 win95-button w-full py-1 font-bold text-xs uppercase tracking-widest bg-[#f9f586] text-center">[OPEN &amp; BURN TRACKS]</button>
               </div>
             ))}
           </div>
@@ -755,6 +761,80 @@ function VirtualCDPlayer() {
 }
 
 /* ─── CD BURNER WIDGET ─── */
+/* ─── QUICK BURN SEARCH ─── */
+function QuickBurnSection({ onBurn }) {
+  const [q, setQ] = useState('');
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [added, setAdded] = useState({});
+  const timer = useRef(null);
+
+  const search = (val) => {
+    setQ(val);
+    if (timer.current) clearTimeout(timer.current);
+    if (!val.trim()) { setResults([]); return; }
+    timer.current = setTimeout(async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`${API}/search?q=${encodeURIComponent(val)}&type=track&limit=6`);
+        const d = await res.json();
+        setResults(d.tracks?.items || []);
+      } catch(e) { console.error(e); }
+      setLoading(false);
+    }, 400);
+  };
+
+  const burn = (track) => {
+    onBurn(track);
+    setAdded(prev => ({ ...prev, [track.id]: true }));
+    setTimeout(() => setAdded(prev => { const n = {...prev}; delete n[track.id]; return n; }), 2000);
+  };
+
+  return (
+    <section className="win95-window">
+      <div className="win95-titlebar"><span>ADD_TO_MIXTAPE.EXE — Search any song and burn it!</span></div>
+      <div className="p-4 bg-dark-800 space-y-3">
+        <div className="flex gap-2">
+          <span className="bg-[#0000A0] text-white font-bold px-3 py-2 flex items-center border-[3px] border-dark-700 border-r-0 text-sm">SEARCH</span>
+          <input
+            type="text"
+            value={q}
+            onChange={e => search(e.target.value)}
+            placeholder="Type a song name to add to your MixTape..."
+            className="flex-1 win95-inset text-black placeholder-dark-600 px-3 py-2 border-[3px] border-dark-700 focus:outline-none focus:bg-yellow-100 font-bold text-sm"
+          />
+        </div>
+        {loading && <div className="w-5 h-5 border-4 border-brand-500 border-t-transparent rounded-full animate-spin mx-auto"/>}
+        {results.length > 0 && (
+          <div className="space-y-1 bg-white border-[3px] border-dark-700 p-2">
+            {results.map(t => {
+              const img = t.album?.images?.[2]?.url || t.album?.images?.[0]?.url;
+              const isAdded = added[t.id];
+              return (
+                <div key={t.id} className="flex items-center gap-3 p-2 border-b border-dark-400 hover:bg-yellow-100 transition-colors">
+                  <img src={img} className="w-10 h-10 object-cover border-2 border-dark-700 shrink-0" alt=""/>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-black font-extrabold text-xs uppercase truncate">{t.name}</p>
+                    <p className="text-dark-600 font-bold text-xs truncate">{t.artists?.map(a=>a.name).join(', ')}</p>
+                  </div>
+                  <button
+                    onClick={() => burn(t)}
+                    className={`win95-button px-3 py-1 font-bold text-xs uppercase tracking-widest shrink-0 transition-colors ${isAdded ? 'bg-green-400 text-white' : 'bg-[#f9f586]'}`}
+                  >
+                    {isAdded ? 'ADDED!' : '[+ BURN]'}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        {!loading && q && results.length === 0 && <p className="text-dark-500 text-center font-bold text-xs uppercase tracking-widest py-2">No results found.</p>}
+        {!q && <p className="text-dark-500 text-center font-bold text-xs uppercase tracking-widest py-2">Type a song above to find it and add it to your MixTape!</p>}
+      </div>
+    </section>
+  );
+}
+
 function CDBurnerWidget({ burnQueue, setBurnQueue }) {
   const [burning, setBurning] = useState(false);
   const [status, setStatus] = useState('');
