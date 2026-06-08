@@ -861,15 +861,16 @@ function CDBurnerWidget({ burnQueue, setBurnQueue }) {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const me = await meRes.json();
-      if (me.error) {
-        setStatus(`FAILED: ${me.error.message} — Reconnect Spotify!`);
+      console.log('[BURN] /me response:', meRes.status, me);
+      if (me.error || !me.id) {
+        setStatus(`STEP1 FAIL ${meRes.status}: ${me.error?.message || 'No user ID'}`);
         setBurning(false);
         return;
       }
       const spotifyUserId = me.id;
 
       setStatus('CREATING PLAYLIST...');
-      // Step 2: Create Playlist using the correct endpoint with user ID
+      // Step 2: Create Playlist
       const createRes = await fetch(`https://api.spotify.com/v1/users/${spotifyUserId}/playlists`, {
         method: 'POST',
         headers: {
@@ -883,9 +884,9 @@ function CDBurnerWidget({ burnQueue, setBurnQueue }) {
         })
       });
       const playlist = await createRes.json();
-      
-      if (playlist.error) {
-        setStatus(`FAILED: ${playlist.error.message}`);
+      console.log('[BURN] create playlist response:', createRes.status, playlist);
+      if (playlist.error || !playlist.id) {
+        setStatus(`STEP2 FAIL ${createRes.status}: ${playlist.error?.message || 'No playlist ID'}`);
         setBurning(false);
         return;
       }
@@ -893,6 +894,7 @@ function CDBurnerWidget({ burnQueue, setBurnQueue }) {
       setStatus('BURNING TRACKS...');
       // Step 3: Add Tracks to the playlist
       const trackUris = burnQueue.map(t => `spotify:track:${t.id}`);
+      console.log('[BURN] adding track URIs:', trackUris);
       const addRes = await fetch(`https://api.spotify.com/v1/playlists/${playlist.id}/tracks`, {
         method: 'POST',
         headers: {
@@ -902,7 +904,12 @@ function CDBurnerWidget({ burnQueue, setBurnQueue }) {
         body: JSON.stringify({ uris: trackUris })
       });
       const addData = await addRes.json();
-      if (addData.error) throw new Error(addData.error.message);
+      console.log('[BURN] add tracks response:', addRes.status, addData);
+      if (addData.error) {
+        setStatus(`STEP3 FAIL ${addRes.status}: ${addData.error.message}`);
+        setBurning(false);
+        return;
+      }
       
       setStatus('BURN COMPLETE! Check Spotify!');
       setTimeout(() => {
@@ -912,8 +919,8 @@ function CDBurnerWidget({ burnQueue, setBurnQueue }) {
       }, 4000);
       
     } catch (err) {
-      console.error('Burn error:', err);
-      setStatus('ERROR: ' + (err.message || 'Unknown'));
+      console.error('[BURN] exception:', err);
+      setStatus('EXCEPTION: ' + (err.message || 'Unknown'));
       setBurning(false);
     }
   };
