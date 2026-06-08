@@ -5,17 +5,64 @@ import time
 import requests
 import uuid
 import base64
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from decimal import Decimal
 from boto3.dynamodb.conditions import Key
 
 dynamodb = boto3.resource('dynamodb')
 TABLE_NAME = os.environ.get("DYNAMODB_TABLE", "TastelyticsReviews")
 PLAYLISTS_TABLE_NAME = os.environ.get("PLAYLISTS_TABLE", "TastelyticsPlaylists")
+USERS_TABLE_NAME = os.environ.get("USERS_TABLE", "TastelyticsUsersTable")
 SPOTIFY_CLIENT_ID = os.environ.get("SPOTIFY_CLIENT_ID")
 SPOTIFY_CLIENT_SECRET = os.environ.get("SPOTIFY_CLIENT_SECRET")
+GMAIL_EMAIL = os.environ.get("GMAIL_EMAIL")
+GMAIL_APP_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD")
 
 # Cache token across invocations
 _spotify_token_cache = {"token": None, "expires_at": 0}
+
+def send_welcome_email(user_email, user_name):
+    if not GMAIL_EMAIL or not GMAIL_APP_PASSWORD:
+        print("Missing GMAIL credentials, skipping welcome email.")
+        return
+    try:
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = "Welcome to Tastelytics!"
+        msg["From"] = f"Tastelytics <{GMAIL_EMAIL}>"
+        msg["To"] = user_email
+
+        html = f"""
+        <html>
+          <body style="font-family: sans-serif; background-color: #f4f4f4; padding: 20px;">
+            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 30px; border-top: 5px solid #ff0055;">
+              <h1 style="color: #333333;">Welcome to Tastelytics, {user_name}! 🎵</h1>
+              <p style="color: #666666; font-size: 16px; line-height: 1.5;">
+                We are thrilled to have you onboard. Tastelytics uses your Spotify listening history to generate beautiful insights and personalized recommendations.
+              </p>
+              <p style="color: #666666; font-size: 16px; line-height: 1.5;">
+                Start exploring your top tracks, discover new artists, and build your perfect library!
+              </p>
+              <p style="color: #666666; font-size: 16px; line-height: 1.5; margin-top: 30px;">
+                Cheers,<br/>
+                <strong>The Tastelytics Team</strong>
+              </p>
+            </div>
+          </body>
+        </html>
+        """
+        part2 = MIMEText(html, "html")
+        msg.attach(part2)
+
+        server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
+        server.login(GMAIL_EMAIL, GMAIL_APP_PASSWORD)
+        server.sendmail(GMAIL_EMAIL, user_email, msg.as_string())
+        server.quit()
+        print(f"Sent welcome email to {user_email}")
+    except Exception as e:
+        print(f"Failed to send welcome email: {e}")
+
 
 def get_spotify_token():
     global _spotify_token_cache
@@ -360,7 +407,37 @@ def handler(event, context):
             if response.status_code != 200:
                 print("Spotify Auth Error:", response.text)
                 return cors_response(response.status_code, {"error": "Failed to exchange token"})
-            return cors_response(200, response.json())
+                
+            resp_data = response.json()
+            access_token = resp_data.get("access_token")
+            
+            if access_token:
+                try:
+                    # Fetch user profile to get email
+                    headers_api = {"Authorization": f"Bearer {access_token}"}
+                    profile_resp = requests.get("https://api.spotify.com/v1/me", headers=headers_api)
+                    if profile_resp.status_code == 200:
+                        profile = profile_resp.json()
+                        spotify_id = profile.get("id")
+                        email = profile.get("email")
+                        display_name = profile.get("display_name") or "Music Lover"
+                        
+                        if spotify_id and email:
+                            users_table = dynamodb.Table(USERS_TABLE_NAME)
+                            user_record = users_table.get_item(Key={"UserID": spotify_id}).get("Item")
+                            if not user_record:
+                                # New user, send email
+                                send_welcome_email(email, display_name)
+                                users_table.put_item(Item={
+                                    "UserID": spotify_id,
+                                    "Email": email,
+                                    "DisplayName": display_name,
+                                    "JoinedAt": str(int(time.time()))
+                                })
+                except Exception as e:
+                    print(f"Error processing new user: {e}")
+
+            return cors_response(200, resp_data)
 
         elif http_method == 'GET' and path == '/spotify/analysis':
             token = query_params.get('token')
