@@ -163,7 +163,7 @@ export function ReviewsPanel({ trackId, padding = "pl-16" }) {
   );
 }
 
-export function TrackRow({ track, onReview, onPlaylist }) {
+export function TrackRow({ track, onReview, onPlaylist, onBurn }) {
   const [showReviews, setShowReviews] = useState(false);
   const img = track.album?.images?.[2]?.url || track.album?.images?.[0]?.url;
   const spotifyUrl = `https://open.spotify.com/track/${track.id}`;
@@ -177,6 +177,7 @@ export function TrackRow({ track, onReview, onPlaylist }) {
         </div>
         <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
           <a href={spotifyUrl} target="_blank" rel="noopener noreferrer" className="win95-button p-1.5" title="Open in Spotify"><ExternalLink size={16} strokeWidth={3}/></a>
+          {onBurn && <button onClick={()=>onBurn(track)} className="win95-button p-1.5 bg-[#f9f586]" title="Add to CD Burner">💿</button>}
           <button onClick={()=>setShowReviews(!showReviews)} className="win95-button p-1.5" title="Reviews"><MessageCircle size={16} strokeWidth={3}/></button>
           <button onClick={()=>onPlaylist(track)} className="win95-button p-1.5" title="Add to playlist"><PlusCircle size={16} strokeWidth={3}/></button>
           <button onClick={()=>onReview(track)} className="win95-button p-1.5" title="Write review"><Star size={16} strokeWidth={3}/></button>

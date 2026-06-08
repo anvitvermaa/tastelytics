@@ -18,6 +18,7 @@ export default function Dashboard() {
   const [feedLoading, setFeedLoading] = useState(true);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [profileAvatar, setProfileAvatar] = useState(localStorage.getItem('tastelytics_profile_avatar') || null);
+  const [burnQueue, setBurnQueue] = useState([]);
   const searchTimer = useRef(null);
   const uid = getUserId();
 
@@ -78,6 +79,12 @@ export default function Dashboard() {
 
   const nav = (v) => { setView(v); if(v!=='search'){setSearchResults(null);setSearchQ('');} if(v!=='artist')setSelectedArtist(null); if(v!=='album')setSelectedAlbum(null); };
 
+  const handleBurn = (track) => {
+    if (!burnQueue.find(t => t.id === track.id)) {
+      setBurnQueue([...burnQueue, track]);
+    }
+  };
+
   const disconnectSpotify = () => {
     localStorage.removeItem('tastelytics_spotify_token');
     window.location.reload();
@@ -136,10 +143,10 @@ export default function Dashboard() {
         
         {/* Main Content Column */}
         <main className="md:col-span-9">
-          {view === 'home' && <HomeView feedArtists={feedArtists} recTracks={recTracks} newReleases={newReleases} feedLoading={feedLoading} onArtist={a=>{setSelectedArtist(a);setView('artist');}} onAlbum={a=>{setSelectedAlbum(a);setView('album');}} onReview={setReviewTrack} onPlaylist={setPlaylistTrack}/>}
-          {view === 'search' && <SearchView searchQ={searchQ} searchResults={searchResults} searching={searching} searchTab={searchTab} setSearchTab={setSearchTab} onArtist={a=>{setSelectedArtist(a);setView('artist');}} onAlbum={a=>{setSelectedAlbum(a);setView('album');}} onReview={setReviewTrack} onPlaylist={setPlaylistTrack}/>}
-          {view === 'artist' && selectedArtist && <ArtistPage artist={selectedArtist} onBack={()=>nav('home')} onArtist={a=>{setSelectedArtist(a);}} onAlbum={a=>{setSelectedAlbum(a);setView('album');}} onReview={setReviewTrack} onPlaylist={setPlaylistTrack}/>}
-          {view === 'album' && selectedAlbum && <AlbumPage album={selectedAlbum} onBack={()=>selectedArtist?setView('artist'):nav('home')} onArtist={a=>{setSelectedArtist(a);setView('artist');}} onReview={setReviewTrack} onPlaylist={setPlaylistTrack}/>}
+          {view === 'home' && <HomeView feedArtists={feedArtists} recTracks={recTracks} newReleases={newReleases} feedLoading={feedLoading} onArtist={a=>{setSelectedArtist(a);setView('artist');}} onAlbum={a=>{setSelectedAlbum(a);setView('album');}} onReview={setReviewTrack} onPlaylist={setPlaylistTrack} onBurn={handleBurn}/>}
+          {view === 'search' && <SearchView searchQ={searchQ} searchResults={searchResults} searching={searching} searchTab={searchTab} setSearchTab={setSearchTab} onArtist={a=>{setSelectedArtist(a);setView('artist');}} onAlbum={a=>{setSelectedAlbum(a);setView('album');}} onReview={setReviewTrack} onPlaylist={setPlaylistTrack} onBurn={handleBurn}/>}
+          {view === 'artist' && selectedArtist && <ArtistPage artist={selectedArtist} onBack={()=>nav('home')} onArtist={a=>{setSelectedArtist(a);}} onAlbum={a=>{setSelectedAlbum(a);setView('album');}} onReview={setReviewTrack} onPlaylist={setPlaylistTrack} onBurn={handleBurn}/>}
+          {view === 'album' && selectedAlbum && <AlbumPage album={selectedAlbum} onBack={()=>selectedArtist?setView('artist'):nav('home')} onArtist={a=>{setSelectedArtist(a);setView('artist');}} onReview={setReviewTrack} onPlaylist={setPlaylistTrack} onBurn={handleBurn}/>}
           {view === 'library' && <LibraryView/>}
           {view === 'analysis' && <AnalysisView onReview={setReviewTrack} onPlaylist={setPlaylistTrack} onArtist={a=>{setSelectedArtist(a);setView('artist');}}/>}
         </main>
@@ -154,10 +161,10 @@ export default function Dashboard() {
             <div className="p-4 bg-dark-800">
               <div className="flex items-center gap-4 mb-3">
                 <div 
-                  className="w-24 h-24 bg-brand-500 border-[3px] border-dark-700 shadow-[inset_2px_2px_0_0_rgba(255,255,255,0.5)] flex-shrink-0 cursor-pointer overflow-hidden group relative transition-transform hover:scale-105"
+                  className="w-24 h-24 bg-brand-500 border-[3px] border-dark-700 shadow-[inset_2px_2px_0_0_rgba(255,255,255,0.5)] flex-shrink-0 cursor-pointer overflow-hidden group relative transition-transform hover:scale-105 rounded-full"
                   onClick={() => setShowAvatarModal(true)}
                 >
-                  {profileAvatar && <img src={profileAvatar} className="w-full h-full object-cover" alt="Avatar"/>}
+                  {profileAvatar && <img src={profileAvatar} className="w-full h-full object-cover scale-[1.15]" alt="Avatar"/>}
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                      <span className="text-white text-[10px] font-bold uppercase text-center leading-tight">Change<br/>Avatar</span>
                   </div>
@@ -179,12 +186,15 @@ export default function Dashboard() {
             <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-2xl drop-shadow-md z-10">📌</span>
             <p className="font-comic text-[#0000A0] text-xs leading-relaxed mt-2 text-center font-bold" style={{fontFamily: '"Comic Sans MS", cursive'}}>
               <strong>UPDATE!</strong> <span className="text-red-600 animate-blink">NEW!</span><br/>
-              Click your profile picture to try out the new Frutiger Aero avatars! ~Anvit
+              Click the 💿 next to any track to add it to your new MixTape Burner below! ~Anvit
             </p>
           </div>
 
+          {/* MixTape CD Burner Widget */}
+          <CDBurnerWidget burnQueue={burnQueue} setBurnQueue={setBurnQueue} />
+
           {/* Virtual CD Player */}
-          <VirtualCDPlayer tracks={recTracks} />
+          <VirtualCDPlayer />
 
           {/* Visitor Counter */}
           <div className="win95-window">
@@ -207,7 +217,7 @@ export default function Dashboard() {
 }
 
 /* ─── HOME ─── */
-function HomeView({ feedArtists, recTracks, newReleases, feedLoading, onArtist, onAlbum, onReview, onPlaylist }) {
+function HomeView({ feedArtists, recTracks, newReleases, feedLoading, onArtist, onAlbum, onReview, onPlaylist, onBurn }) {
   const profile = JSON.parse(localStorage.getItem('tastelytics_profile') || '{}');
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
@@ -223,7 +233,7 @@ function HomeView({ feedArtists, recTracks, newReleases, feedLoading, onArtist, 
       {recTracks.length > 0 && (
         <section className="win95-window">
           <div className="win95-titlebar"><span>RECOMMENDED.EXE</span></div>
-          <div className="space-y-2 p-4 bg-dark-800">{recTracks.slice(0,8).map(t=><TrackRow key={t.id} track={t} onReview={onReview} onPlaylist={onPlaylist}/>)}</div>
+          <div className="space-y-2 p-4 bg-dark-800">{recTracks.slice(0,8).map(t=><TrackRow key={t.id} track={t} onReview={onReview} onPlaylist={onPlaylist} onBurn={onBurn}/>)}</div>
         </section>
       )}
 
@@ -261,7 +271,7 @@ function HomeView({ feedArtists, recTracks, newReleases, feedLoading, onArtist, 
 }
 
 /* ─── SEARCH ─── */
-function SearchView({ searchQ, searchResults, searching, searchTab, setSearchTab, onArtist, onAlbum, onReview, onPlaylist }) {
+function SearchView({ searchQ, searchResults, searching, searchTab, setSearchTab, onArtist, onAlbum, onReview, onPlaylist, onBurn }) {
   const tabs = ['all','artists','tracks','albums'];
   return (
     <div>
@@ -292,7 +302,7 @@ function SearchView({ searchQ, searchResults, searching, searchTab, setSearchTab
         {(searchTab==='all'||searchTab==='tracks') && searchResults.tracks?.items?.length > 0 && <>
           <section className="win95-window mb-10">
             <div className="win95-titlebar"><span>TRACKS.EXE</span></div>
-            <div className="space-y-2 p-4 bg-dark-800">{searchResults.tracks.items.slice(0,searchTab==='tracks'?20:8).map(t=><TrackRow key={t.id} track={t} onReview={onReview} onPlaylist={onPlaylist}/>)}</div>
+            <div className="space-y-2 p-4 bg-dark-800">{searchResults.tracks.items.slice(0,searchTab==='tracks'?20:8).map(t=><TrackRow key={t.id} track={t} onReview={onReview} onPlaylist={onPlaylist} onBurn={onBurn}/>)}</div>
           </section>
         </>}
 
@@ -317,7 +327,7 @@ function SearchView({ searchQ, searchResults, searching, searchTab, setSearchTab
 }
 
 /* ─── ARTIST PAGE ─── */
-function ArtistPage({ artist, onBack, onArtist, onAlbum, onReview, onPlaylist }) {
+function ArtistPage({ artist, onBack, onArtist, onAlbum, onReview, onPlaylist, onBurn }) {
   const [tracks, setTracks] = useState([]);
   const [albums, setAlbums] = useState([]);
   const [related, setRelated] = useState([]);
@@ -373,7 +383,7 @@ function ArtistPage({ artist, onBack, onArtist, onAlbum, onReview, onPlaylist })
           {tracks.length > 0 && (
             <section className="win95-window">
               <div className="win95-titlebar"><span>TOP_TRACKS.EXE</span></div>
-              <div className="space-y-2 p-4 bg-dark-800">{tracks.map(t=><TrackRow key={t.id} track={t} onReview={onReview} onPlaylist={onPlaylist}/>)}</div>
+              <div className="space-y-2 p-4 bg-dark-800">{tracks.map(t=><TrackRow key={t.id} track={t} onReview={onReview} onPlaylist={onPlaylist} onBurn={onBurn}/>)}</div>
             </section>
           )}
 
@@ -412,7 +422,7 @@ function ArtistPage({ artist, onBack, onArtist, onAlbum, onReview, onPlaylist })
 }
 
 /* ─── ALBUM PAGE ─── */
-function AlbumPage({ album: albumProp, onBack, onArtist, onReview, onPlaylist }) {
+function AlbumPage({ album: albumProp, onBack, onArtist, onReview, onPlaylist, onBurn }) {
   const [album, setAlbum] = useState(albumProp);
   const [tracks, setTracks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -485,6 +495,7 @@ function AlbumPage({ album: albumProp, onBack, onArtist, onReview, onPlaylist })
                     <span className="text-black font-mono text-sm shrink-0">{durMin}:{durSec}</span>
                     <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <a href={`https://open.spotify.com/track/${t.id}`} target="_blank" rel="noopener noreferrer" className="win95-button px-2 py-1"><ExternalLink size={14}/></a>
+                      <button onClick={()=>onBurn(t)} className="win95-button px-2 py-1 bg-[#f9f586]">💿</button>
                       <button onClick={()=>onReview(t)} className="win95-button px-2 py-1"><Disc3 size={14}/></button>
                     </div>
                   </div>
@@ -597,7 +608,7 @@ function AnalysisView({ onReview, onPlaylist, onArtist }) {
   const connectSpotify = () => {
     const clientId = '8acd7efe5e9749dc9ad9a39ba4faa007';
     const redirectUri = window.location.origin + '/';
-    const scope = 'user-top-read user-read-email user-read-private user-read-currently-playing';
+    const scope = 'user-top-read user-read-email user-read-private user-read-currently-playing playlist-modify-public playlist-modify-private';
     window.location.href = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}`;
   };
 
@@ -743,6 +754,118 @@ function VirtualCDPlayer() {
   );
 }
 
+/* ─── CD BURNER WIDGET ─── */
+function CDBurnerWidget({ burnQueue, setBurnQueue }) {
+  const [burning, setBurning] = useState(false);
+  const [status, setStatus] = useState('');
+  
+  const token = localStorage.getItem('tastelytics_spotify_token');
+  const profile = JSON.parse(localStorage.getItem('tastelytics_profile') || '{}');
+  const uid = profile.id || getUserId();
+
+  const removeTrack = (id) => {
+    setBurnQueue(burnQueue.filter(t => t.id !== id));
+  };
+
+  const burnPlaylist = async () => {
+    if (burnQueue.length === 0 || !token || !uid || uid === 'anonymous') {
+      setStatus('ERROR: LOG IN TO SPOTIFY!');
+      return;
+    }
+    setBurning(true);
+    setStatus('CREATING PLAYLIST...');
+    
+    try {
+      // 1. Create Playlist
+      const createRes = await fetch(`https://api.spotify.com/v1/users/${uid}/playlists`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: 'Tastelytics MixTape 💽',
+          description: 'A custom MixTape burned directly from Tastelytics!',
+          public: true
+        })
+      });
+      const playlist = await createRes.json();
+      
+      if (playlist.error) {
+        throw new Error(playlist.error.message);
+      }
+
+      setStatus('BURNING TRACKS...');
+      // 2. Add Tracks
+      const trackUris = burnQueue.map(t => `spotify:track:${t.id}`);
+      await fetch(`https://api.spotify.com/v1/playlists/${playlist.id}/tracks`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ uris: trackUris })
+      });
+      
+      setStatus('BURN COMPLETE!');
+      setTimeout(() => {
+        setBurnQueue([]);
+        setStatus('');
+        setBurning(false);
+      }, 3000);
+      
+    } catch (err) {
+      console.error(err);
+      setStatus('BURN FAILED!');
+      setBurning(false);
+    }
+  };
+
+  const capacity = 15; // Max 15 tracks per CD for retro feel
+  const used = burnQueue.length;
+  const percentage = Math.min((used / capacity) * 100, 100);
+
+  return (
+    <div className="win95-window">
+      <div className="win95-titlebar"><span>CD_BURNER.EXE</span></div>
+      <div className="p-4 bg-dark-800 flex flex-col gap-4">
+        
+        <div className="flex gap-4 items-center bg-black border-[3px] border-dark-700 shadow-[inset_2px_2px_0_0_#333] p-3">
+          <div className={`w-16 h-16 rounded-full border-[3px] border-dark-600 bg-gradient-to-tr from-gray-400 to-gray-200 flex items-center justify-center shrink-0 ${burning ? 'animate-spin' : ''}`} style={{ background: 'conic-gradient(from 0deg, #9ca3af, #f3f4f6, #6b7280, #f3f4f6, #9ca3af)' }}>
+             <div className="w-4 h-4 rounded-full bg-black border-2 border-dark-600"></div>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-brand-500 font-mono font-bold text-xs uppercase tracking-widest mb-1 truncate">{status || 'CD-R BLANK [74 MIN]'}</p>
+            <div className="w-full bg-dark-800 border-2 border-dark-700 h-4">
+               <div className="bg-[#0000A0] h-full" style={{ width: `${percentage}%`, transition: 'width 0.3s' }}></div>
+            </div>
+            <p className="text-dark-500 font-mono text-[10px] mt-1">{used} / {capacity} TRACKS USED</p>
+          </div>
+        </div>
+
+        <div className="bg-white border-[3px] border-dark-700 shadow-[inset_2px_2px_0_0_rgba(0,0,0,0.1)] h-40 overflow-y-auto p-2 space-y-2">
+          {burnQueue.length === 0 && <p className="text-dark-500 font-bold text-center text-xs mt-12 uppercase tracking-widest">DRAG OR ADD TRACKS HERE</p>}
+          {burnQueue.map((t, i) => (
+             <div key={t.id + i} className="flex items-center gap-2 text-xs border-b border-dark-400 pb-1">
+                <span className="font-mono font-bold text-[#0000A0]">{String(i+1).padStart(2,'0')}</span>
+                <span className="font-bold text-black truncate flex-1">{t.name}</span>
+                <button onClick={() => removeTrack(t.id)} className="text-red-500 hover:text-red-700 font-bold">X</button>
+             </div>
+          ))}
+        </div>
+
+        <button 
+           onClick={burnPlaylist} 
+           disabled={burning || burnQueue.length === 0}
+           className="win95-button py-2 font-bold uppercase tracking-widest text-sm bg-[#f9f586] disabled:bg-dark-600 disabled:text-dark-500"
+        >
+          {burning ? 'BURNING...' : 'BURN TO SPOTIFY'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /* ─── AVATAR SELECTION MODAL ─── */
 function AvatarSelectionModal({ onClose, setProfileAvatar }) {
   const fileInputRef = useRef(null);
@@ -750,7 +873,10 @@ function AvatarSelectionModal({ onClose, setProfileAvatar }) {
   const avatars = [
     '/avatars/frutiger_aero_globe_1780906726810.png',
     '/avatars/frutiger_aero_dolphin_1780906739409.png',
-    '/avatars/frutiger_aero_leaf_1780906751805.png'
+    '/avatars/frutiger_aero_leaf_1780906751805.png',
+    '/avatars/frutiger_aero_glass_head_1780912675572.png',
+    '/avatars/frutiger_aero_flower_1780912687932.png',
+    '/avatars/frutiger_aero_chess_1780912701274.png'
   ];
 
   const handleSelect = (url) => {
