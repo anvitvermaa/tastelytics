@@ -853,11 +853,24 @@ function CDBurnerWidget({ burnQueue, setBurnQueue }) {
     }
 
     setBurning(true);
-    setStatus('CREATING PLAYLIST...');
+    setStatus('FETCHING PROFILE...');
     
     try {
-      // 1. Create Playlist using /me/playlists (no need for user ID)
-      const createRes = await fetch(`https://api.spotify.com/v1/me/playlists`, {
+      // Step 1: Get the actual Spotify user ID
+      const meRes = await fetch('https://api.spotify.com/v1/me', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const me = await meRes.json();
+      if (me.error) {
+        setStatus(`FAILED: ${me.error.message} — Reconnect Spotify!`);
+        setBurning(false);
+        return;
+      }
+      const spotifyUserId = me.id;
+
+      setStatus('CREATING PLAYLIST...');
+      // Step 2: Create Playlist using the correct endpoint with user ID
+      const createRes = await fetch(`https://api.spotify.com/v1/users/${spotifyUserId}/playlists`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -872,14 +885,13 @@ function CDBurnerWidget({ burnQueue, setBurnQueue }) {
       const playlist = await createRes.json();
       
       if (playlist.error) {
-        // Token might be expired or missing playlist scope
         setStatus(`FAILED: ${playlist.error.message}`);
         setBurning(false);
         return;
       }
 
       setStatus('BURNING TRACKS...');
-      // 2. Add Tracks
+      // Step 3: Add Tracks to the playlist
       const trackUris = burnQueue.map(t => `spotify:track:${t.id}`);
       const addRes = await fetch(`https://api.spotify.com/v1/playlists/${playlist.id}/tracks`, {
         method: 'POST',
@@ -901,7 +913,7 @@ function CDBurnerWidget({ burnQueue, setBurnQueue }) {
       
     } catch (err) {
       console.error('Burn error:', err);
-      setStatus('BURN FAILED: ' + (err.message || 'Unknown error'));
+      setStatus('ERROR: ' + (err.message || 'Unknown'));
       setBurning(false);
     }
   };
