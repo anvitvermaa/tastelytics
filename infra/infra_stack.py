@@ -138,6 +138,13 @@ class TastelyticsStack(Stack):
             removal_policy=RemovalPolicy.DESTROY
         )
 
+        users_table = dynamodb.Table(
+            self, "TastelyticsUsersTable",
+            partition_key=dynamodb.Attribute(name="UserID", type=dynamodb.AttributeType.STRING),
+            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,
+            removal_policy=RemovalPolicy.DESTROY
+        )
+
         api_lambda = _lambda.DockerImageFunction(
             self, "TastelyticsApiHandler",
             code=_lambda.DockerImageCode.from_image_asset("../backend"),
@@ -146,12 +153,16 @@ class TastelyticsStack(Stack):
             environment={
                 "DYNAMODB_TABLE": table.table_name,
                 "PLAYLISTS_TABLE": playlists_table.table_name,
+                "USERS_TABLE": users_table.table_name,
+                "GMAIL_EMAIL": os.environ.get("GMAIL_EMAIL", ""),
+                "GMAIL_APP_PASSWORD": os.environ.get("GMAIL_APP_PASSWORD", ""),
                 "SPOTIFY_CLIENT_ID": os.environ.get("SPOTIFY_CLIENT_ID", ""),
                 "SPOTIFY_CLIENT_SECRET": os.environ.get("SPOTIFY_CLIENT_SECRET", "")
             }
         )
         table.grant_read_write_data(api_lambda)
         playlists_table.grant_read_write_data(api_lambda)
+        users_table.grant_read_write_data(api_lambda)
 
         api = apigw.RestApi(
             self, "TastelyticsApi",
