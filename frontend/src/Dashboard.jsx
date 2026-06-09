@@ -19,12 +19,25 @@ export default function Dashboard() {
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [profileAvatar, setProfileAvatar] = useState(localStorage.getItem('tastelytics_profile_avatar') || null);
   const [burnQueue, setBurnQueue] = useState([]);
+  const [visitorCount, setVisitorCount] = useState("0042069");
   const searchTimer = useRef(null);
   const uid = getUserId();
 
   const profile = JSON.parse(localStorage.getItem('tastelytics_profile') || '{}');
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+
+  useEffect(() => {
+    // Fetch and increment visitor count
+    fetch('https://api.counterapi.dev/v1/tastelytics_app/visitors/up')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.count) {
+          setVisitorCount(String(data.count).padStart(7, '0'));
+        }
+      })
+      .catch(err => console.error("Counter API failed", err));
+  }, []);
 
   useEffect(() => {
     // PKCE Spotify Auth Code Exchange — directly with Spotify, no backend needed
@@ -216,7 +229,7 @@ export default function Dashboard() {
           <div className="win95-window">
              <div className="win95-titlebar"><span>VISITORS.EXE</span></div>
              <div className="bg-dark-800 p-3 text-center">
-              <div className="font-mono text-2xl text-red-500 font-bold tracking-widest bg-black border-[3px] border-dark-700 shadow-[inset_2px_2px_0_0_#333] p-2 inline-block">0042069</div>
+              <div className="font-mono text-2xl text-red-500 font-bold tracking-widest bg-black border-[3px] border-dark-700 shadow-[inset_2px_2px_0_0_#333] p-2 inline-block">{visitorCount}</div>
              </div>
           </div>
 
