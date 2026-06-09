@@ -107,6 +107,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-dark-900 text-dark-100 font-sans pb-12">
       <NyanCat />
+      <ComicHint />
       {reviewTrack && <ReviewModal track={reviewTrack} onClose={()=>setReviewTrack(null)}/>}
       {playlistTrack && <PlaylistModal track={playlistTrack} onClose={()=>setPlaylistTrack(null)}/>}
       {showAvatarModal && <AvatarSelectionModal onClose={() => setShowAvatarModal(false)} setProfileAvatar={setProfileAvatar} />}
@@ -996,6 +997,75 @@ function CDBurnerWidget({ burnQueue, setBurnQueue }) {
         >
           {burning ? 'BURNING...' : `BURN TO SPOTIFY${playlistName.trim() ? ` — "${playlistName.trim()}"` : ''}`}
         </button>
+      </div>
+    </div>
+  );
+}
+
+/* ─── COMIC HINT BUBBLE ─── */
+function ComicHint() {
+  const [show, setShow] = useState(true);
+  useEffect(() => {
+    const t = setTimeout(() => setShow(false), 9000);
+    return () => clearTimeout(t);
+  }, []);
+  if (!show) return null;
+  return (
+    <div style={{
+      position:   'fixed',
+      left:       '22px',
+      top:        '260px',
+      zIndex:     99996,
+      animation:  'nyanWobble 0.6s ease-in-out infinite alternate',
+      pointerEvents: 'none',
+    }}>
+      <style>{`
+        @keyframes nyanWobble {
+          from { transform: rotate(-2deg) scale(1); }
+          to   { transform: rotate(2deg)  scale(1.04); }
+        }
+      `}</style>
+      {/* Bubble body */}
+      <div style={{
+        background:   '#fff',
+        border:       '3px solid #111',
+        borderRadius: '10px',
+        padding:      '10px 13px',
+        fontFamily:   "'Press Start 2P', monospace",
+        fontSize:     '7px',
+        lineHeight:   '1.7',
+        color:        '#111',
+        maxWidth:     '145px',
+        textAlign:    'center',
+        boxShadow:    '4px 4px 0 #111',
+        position:     'relative',
+      }}>
+        TRY CLICKING<br/>THE NYAN CAT!!
+        {/* Tail outer (black) */}
+        <div style={{
+          position:      'absolute',
+          right:         '-15px',
+          top:           '50%',
+          transform:     'translateY(-50%)',
+          width:         0,
+          height:        0,
+          borderTop:     '9px solid transparent',
+          borderBottom:  '9px solid transparent',
+          borderLeft:    '12px solid #111',
+        }}/>
+        {/* Tail inner (white) */}
+        <div style={{
+          position:      'absolute',
+          right:         '-10px',
+          top:           '50%',
+          transform:     'translateY(-50%)',
+          width:         0,
+          height:        0,
+          borderTop:     '7px solid transparent',
+          borderBottom:  '7px solid transparent',
+          borderLeft:    '10px solid #fff',
+          zIndex:        1,
+        }}/>
       </div>
     </div>
   );
