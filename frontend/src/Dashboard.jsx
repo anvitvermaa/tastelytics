@@ -1003,36 +1003,36 @@ function CDBurnerWidget({ burnQueue, setBurnQueue }) {
 
 /* ─── NYAN CAT ─── */
 function NyanCat() {
-  const catRef = useRef(null);
+  const catRef  = useRef(null);
+  const hiRef   = useRef(null);
+  const posRef  = useRef({ x: window.innerWidth * 0.3, y: window.innerHeight * 0.4 });
 
   useEffect(() => {
-    const el = catRef.current;
-    const W = 120, H = 76; // 240x152 at 0.5x
+    const el  = catRef.current;
+    const hi  = hiRef.current;
+    const W = 100, H = 63;
 
-    let x = window.innerWidth  * 0.3;
-    let y = window.innerHeight * 0.4;
+    let { x, y } = posRef.current;
     let dx = 2.5, dy = 1.2;
     let angle = 0;
-    let mode = 'move';   // 'move' | 'spin' | 'pause'
-    let modeFrames = 0;
-    let modeDuration = 0;
-    let spinTarget = 0;
+    let mode = 'move';
+    let modeFrames = 0, modeDuration = 0, spinTarget = 0;
     let animId;
 
-    const rnd = (min, max) => min + Math.random() * (max - min);
+    const rnd = (a, b) => a + Math.random() * (b - a);
 
     const newDir = () => {
-      const spd = rnd(1.5, 4);
-      const a = Math.random() * Math.PI * 2;
+      const spd = rnd(1.5, 3.5);
+      const a   = Math.random() * Math.PI * 2;
       dx = Math.cos(a) * spd;
       dy = Math.sin(a) * spd;
     };
 
     const enter = (m) => {
       mode = m; modeFrames = 0;
-      if (m === 'move')  { modeDuration = rnd(80, 260); newDir(); angle = 0; }
+      if (m === 'move')  { modeDuration = rnd(90, 270); newDir(); angle = 0; }
       if (m === 'spin')  { spinTarget = 360 * Math.floor(rnd(2, 7)); modeDuration = spinTarget / 9; }
-      if (m === 'pause') { modeDuration = rnd(20, 80); }
+      if (m === 'pause') { modeDuration = rnd(20, 90); }
     };
 
     const tick = () => {
@@ -1055,10 +1055,16 @@ function NyanCat() {
         if (modeFrames > modeDuration) enter(Math.random() < 0.4 ? 'spin' : 'move');
       }
 
+      posRef.current = { x, y };
       const flip = (mode === 'move' && dx < 0) ? ' scaleX(-1)' : '';
       el.style.left      = x + 'px';
       el.style.top       = y + 'px';
       el.style.transform = `rotate(${angle}deg)${flip}`;
+
+      // Keep speech bubble near cat
+      hi.style.left = (x + W / 2 - 30) + 'px';
+      hi.style.top  = (y - 44) + 'px';
+
       animId = requestAnimationFrame(tick);
     };
 
@@ -1067,23 +1073,61 @@ function NyanCat() {
     return () => cancelAnimationFrame(animId);
   }, []);
 
+  const sayHi = () => {
+    const hi = hiRef.current;
+    hi.style.opacity   = '1';
+    hi.style.transform = 'scale(1.2)';
+    setTimeout(() => { hi.style.transform = 'scale(1)'; }, 150);
+    setTimeout(() => { hi.style.opacity = '0'; }, 1800);
+  };
+
   return (
-    <img
-      ref={catRef}
-      src="/nyan.gif"
-      alt=""
-      style={{
-        position:       'fixed',
-        top:            0,
-        left:           0,
-        width:          '120px',
-        height:         '76px',
-        pointerEvents:  'none',
-        zIndex:         99999,
-        imageRendering: 'pixelated',
-        mixBlendMode:   'screen',
-      }}
-    />
+    <>
+      {/* Speech bubble */}
+      <div
+        ref={hiRef}
+        style={{
+          position:      'fixed',
+          top:           0,
+          left:          0,
+          opacity:       0,
+          pointerEvents: 'none',
+          zIndex:        100000,
+          background:    '#fff',
+          border:        '2px solid #333',
+          borderRadius:  '12px',
+          padding:       '4px 10px',
+          fontWeight:    'bold',
+          fontSize:      '14px',
+          color:         '#333',
+          transition:    'opacity 0.3s, transform 0.15s',
+          whiteSpace:    'nowrap',
+          boxShadow:     '2px 2px 0 #333',
+        }}
+      >
+        HIII! 👋
+      </div>
+
+      {/* Nyan Cat GIF */}
+      <img
+        ref={catRef}
+        src="/nyan.gif"
+        alt="nyan cat"
+        onClick={sayHi}
+        style={{
+          position:       'fixed',
+          top:            0,
+          left:           0,
+          width:          '100px',
+          height:         '63px',
+          pointerEvents:  'auto',
+          cursor:         'pointer',
+          zIndex:         99999,
+          imageRendering: 'pixelated',
+          borderRadius:   '6px',
+        }}
+      />
+    </>
   );
 }
 
