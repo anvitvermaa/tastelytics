@@ -1006,26 +1006,63 @@ function NyanCat() {
   const catRef = useRef(null);
 
   useEffect(() => {
-    const catEl = catRef.current;
-    const W = 120, H = 48;
-    let x  = window.innerWidth  * 0.3;
-    let y  = window.innerHeight * 0.4;
-    let dx = 5;
-    let dy = 3;
+    const el = catRef.current;
+    const W = 120, H = 76; // 240x152 at 0.5x
+
+    let x = window.innerWidth  * 0.3;
+    let y = window.innerHeight * 0.4;
+    let dx = 2.5, dy = 1.2;
+    let angle = 0;
+    let mode = 'move';   // 'move' | 'spin' | 'pause'
+    let modeFrames = 0;
+    let modeDuration = 0;
+    let spinTarget = 0;
     let animId;
 
+    const rnd = (min, max) => min + Math.random() * (max - min);
+
+    const newDir = () => {
+      const spd = rnd(1.5, 4);
+      const a = Math.random() * Math.PI * 2;
+      dx = Math.cos(a) * spd;
+      dy = Math.sin(a) * spd;
+    };
+
+    const enter = (m) => {
+      mode = m; modeFrames = 0;
+      if (m === 'move')  { modeDuration = rnd(80, 260); newDir(); angle = 0; }
+      if (m === 'spin')  { spinTarget = 360 * Math.floor(rnd(2, 7)); modeDuration = spinTarget / 9; }
+      if (m === 'pause') { modeDuration = rnd(20, 80); }
+    };
+
     const tick = () => {
-      x += dx; y += dy;
-      if (x + W > window.innerWidth)  { dx = -Math.abs(dx); x = window.innerWidth  - W; }
-      if (x < 0)                      { dx =  Math.abs(dx); x = 0; }
-      if (y + H > window.innerHeight) { dy = -Math.abs(dy); y = window.innerHeight - H; }
-      if (y < 0)                      { dy =  Math.abs(dy); y = 0; }
-      catEl.style.left      = x + 'px';
-      catEl.style.top       = y + 'px';
-      catEl.style.transform = dx < 0 ? 'scaleX(-1)' : 'scaleX(1)';
+      modeFrames++;
+
+      if (mode === 'move') {
+        x += dx; y += dy;
+        if (x + W > window.innerWidth)  { dx = -Math.abs(dx); x = window.innerWidth - W; }
+        if (x < 0)                      { dx =  Math.abs(dx); x = 0; }
+        if (y + H > window.innerHeight) { dy = -Math.abs(dy); y = window.innerHeight - H; }
+        if (y < 0)                      { dy =  Math.abs(dy); y = 0; }
+        if (modeFrames > modeDuration) {
+          const r = Math.random();
+          enter(r < 0.35 ? 'spin' : r < 0.6 ? 'pause' : 'move');
+        }
+      } else if (mode === 'spin') {
+        angle += 9;
+        if (angle >= spinTarget) { angle = 0; enter(Math.random() < 0.3 ? 'pause' : 'move'); }
+      } else {
+        if (modeFrames > modeDuration) enter(Math.random() < 0.4 ? 'spin' : 'move');
+      }
+
+      const flip = (mode === 'move' && dx < 0) ? ' scaleX(-1)' : '';
+      el.style.left      = x + 'px';
+      el.style.top       = y + 'px';
+      el.style.transform = `rotate(${angle}deg)${flip}`;
       animId = requestAnimationFrame(tick);
     };
 
+    enter('move');
     animId = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(animId);
   }, []);
@@ -1040,10 +1077,11 @@ function NyanCat() {
         top:            0,
         left:           0,
         width:          '120px',
-        height:         '48px',
+        height:         '76px',
         pointerEvents:  'none',
         zIndex:         99999,
         imageRendering: 'pixelated',
+        mixBlendMode:   'screen',
       }}
     />
   );
