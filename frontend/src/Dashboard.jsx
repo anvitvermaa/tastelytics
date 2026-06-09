@@ -687,7 +687,7 @@ function AnalysisView({ onReview, onPlaylist, onArtist }) {
         <div className="win95-window">
           <div className="win95-titlebar"><span>TOP_ARTISTS.LST</span></div>
           <div className="p-4 bg-dark-800 flex flex-col gap-3">
-            {data.top_artists?.length > 0 ? data.top_artists.slice(0, 5).map((a, i) => (
+            {data.top_artists?.length > 0 ? data.top_artists.slice(0, 10).map((a, i) => (
               <div key={a.id} className="flex items-center gap-4 win95-inset p-2 border-[2px] border-dark-700 cursor-pointer hover:bg-yellow-100" onClick={() => onArtist(a)}>
                 <span className="font-extrabold text-xl text-dark-600 w-6 text-center">{i+1}</span>
                 {a.images?.[0] && <img src={a.images[0].url} className="w-12 h-12 object-cover border-2 border-black" alt=""/>}
