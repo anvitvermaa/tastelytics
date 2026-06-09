@@ -1004,12 +1004,6 @@ function CDBurnerWidget({ burnQueue, setBurnQueue }) {
 
 /* ─── COMIC HINT BUBBLE ─── */
 function ComicHint() {
-  const [show, setShow] = useState(true);
-  useEffect(() => {
-    const t = setTimeout(() => setShow(false), 9000);
-    return () => clearTimeout(t);
-  }, []);
-  if (!show) return null;
   return (
     <div style={{
       position:   'fixed',
