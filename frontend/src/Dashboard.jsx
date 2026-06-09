@@ -975,7 +975,7 @@ function CDBurnerWidget({ burnQueue, setBurnQueue }) {
             value={playlistName}
             onChange={e => setPlaylistName(e.target.value)}
             placeholder="e.g. Summer Vibes 2025..."
-            className="flex-1 win95-inset text-black placeholder-dark-500 px-3 py-2 border-[3px] border-dark-700 focus:outline-none focus:bg-yellow-100 font-bold text-sm"
+            className="flex-1 min-w-0 win95-inset text-black placeholder-dark-500 px-3 py-2 border-[3px] border-dark-700 focus:outline-none focus:bg-yellow-100 font-bold text-sm"
           />
         </div>
 
