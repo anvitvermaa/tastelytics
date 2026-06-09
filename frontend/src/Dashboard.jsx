@@ -1004,52 +1004,84 @@ function CDBurnerWidget({ burnQueue, setBurnQueue }) {
 /* ─── NYAN CAT ─── */
 function NyanCat() {
   const canvasRef = useRef(null);
-  const catRef = useRef(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
-    const catEl = catRef.current;
 
     const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
     resize();
     window.addEventListener('resize', resize);
 
-    const CAT_W = 90, CAT_H = 52;
+    const S = 4; // pixels per "pixel"
+    const CAT_W = 24*S, CAT_H = 18*S;
     const SPEED = 6;
-    const STRIPE = 8;
+    const STRIPE = 9;
     const rainbow = ['#FF0000','#FF9900','#FFFF00','#33CC00','#0066FF','#9933FF'];
-    const MAX_TRAIL = 120;
 
     const state = {
       x: window.innerWidth * 0.35,
       y: window.innerHeight * 0.4,
       dx: SPEED, dy: SPEED * 0.45,
       trail: [],
-      stars: Array.from({length:14}, () => ({
+      frame: 0,
+      stars: Array.from({length:12}, () => ({
         x: Math.random() * window.innerWidth,
         y: Math.random() * window.innerHeight,
         t: Math.random() * 80
       }))
     };
 
+    const r = (x,y,w,h,c) => { ctx.fillStyle=c; ctx.fillRect(x,y,w*S,h*S); };
+
+    const drawCat = (ox, oy, frame) => {
+      const leg = Math.floor(frame/5)%2;
+      // Pop-tart body
+      r(ox+1,oy+4, 13,9, '#FFB5C8');
+      // Pop-tart edge
+      r(ox+1,oy+4, 13,1,'#DD8899'); r(ox+1,oy+12,13,1,'#DD8899');
+      r(ox+1,oy+4, 1,9,'#DD8899');  r(ox+13,oy+4,1,9,'#DD8899');
+      // Sprinkles
+      [[4,6,'#FF44AA'],[7,5,'#4499FF'],[10,7,'#FF44AA'],[5,9,'#55CC44'],[9,10,'#FF8844'],[11,6,'#55AAFF'],[3,11,'#FF44AA']].forEach(([sx,sy,c])=>r(ox+sx,oy+sy,1,1,c));
+      // Cat grey body
+      r(ox+13,oy+1, 9,11,'#888888');
+      // Ears
+      r(ox+13,oy,   2,2,'#888888'); r(ox+13,oy+1,1,1,'#FFAACC');
+      r(ox+18,oy,   2,2,'#888888'); r(ox+18,oy+1,1,1,'#FFAACC');
+      // Eyes (black + white shine)
+      r(ox+14,oy+3, 2,2,'#111111'); r(ox+14,oy+3,1,1,'#FFFFFF');
+      r(ox+18,oy+3, 2,2,'#111111'); r(ox+18,oy+3,1,1,'#FFFFFF');
+      // Nose
+      r(ox+16,oy+5, 1,1,'#FFAACC');
+      // Mouth
+      r(ox+15,oy+6,1,1,'#333333'); r(ox+17,oy+6,1,1,'#333333');
+      // Tail
+      r(ox-2,oy+7, 2,2,'#888888'); r(ox-3,oy+5,2,2,'#888888');
+      // Legs (alternating)
+      const lo = leg ? 1 : 0;
+      r(ox+2, oy+13+lo,  3,3,'#888888');
+      r(ox+6, oy+13+(1-lo),3,3,'#888888');
+      r(ox+10,oy+13+lo,  3,3,'#888888');
+      r(ox+14,oy+13+(1-lo),3,3,'#888888');
+    };
+
     let animId;
     const animate = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.clearRect(0,0,canvas.width,canvas.height);
 
-      state.x += state.dx; state.y += state.dy;
+      state.x += state.dx; state.y += state.dy; state.frame++;
 
-      if (state.x + CAT_W > canvas.width)  state.dx = -Math.abs(state.dx);
-      if (state.x < 0)                      state.dx =  Math.abs(state.dx);
-      if (state.y + CAT_H > canvas.height)  state.dy = -Math.abs(state.dy);
-      if (state.y < 0)                      state.dy =  Math.abs(state.dy);
+      if (state.x+CAT_W > canvas.width)  state.dx = -Math.abs(state.dx);
+      if (state.x < 0)                   state.dx =  Math.abs(state.dx);
+      if (state.y+CAT_H > canvas.height) state.dy = -Math.abs(state.dy);
+      if (state.y < 0)                   state.dy =  Math.abs(state.dy);
 
       state.trail.push({ x: state.x, y: state.y });
-      if (state.trail.length > MAX_TRAIL) state.trail.shift();
+      if (state.trail.length > 100) state.trail.shift();
 
-      // Draw 6-stripe rainbow trail following cat path
+      // Rainbow trail — 6 stripes following the path
       if (state.trail.length > 2) {
-        const baseY = CAT_H / 2 - (rainbow.length * STRIPE) / 2;
+        const baseY = CAT_H/2 - (rainbow.length*STRIPE)/2;
         rainbow.forEach((color, ci) => {
           ctx.strokeStyle = color;
           ctx.lineWidth = STRIPE;
@@ -1057,36 +1089,42 @@ function NyanCat() {
           ctx.lineJoin = 'round';
           ctx.beginPath();
           state.trail.forEach((pt, i) => {
-            const px = pt.x + CAT_W * 0.2;
-            const py = pt.y + baseY + ci * STRIPE + STRIPE / 2;
-            i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+            const px = state.dx >= 0 ? pt.x + S : pt.x + CAT_W - S;
+            const py = pt.y + baseY + ci*STRIPE + STRIPE/2;
+            i===0 ? ctx.moveTo(px,py) : ctx.lineTo(px,py);
           });
           ctx.stroke();
         });
       }
 
-      // Twinkling + stars
+      // Stars near trail
       state.stars.forEach(star => {
         star.t++;
-        if (star.t > 100 && state.trail.length > 0) {
-          const pt = state.trail[Math.floor(Math.random() * state.trail.length)];
-          star.x = pt.x + (Math.random() - 0.5) * 160;
-          star.y = pt.y + (Math.random() - 0.5) * 90;
+        if (star.t > 90 && state.trail.length > 0) {
+          const pt = state.trail[Math.floor(Math.random()*state.trail.length)];
+          star.x = pt.x + (Math.random()-0.5)*150;
+          star.y = pt.y + (Math.random()-0.5)*80;
           star.t = 0;
         }
-        const a = 0.2 + 0.8 * Math.abs(Math.sin(star.t * 0.08));
-        const s = 2 + 4 * Math.abs(Math.sin(star.t * 0.08));
+        const a = 0.15 + 0.85*Math.abs(Math.sin(star.t*0.09));
+        const sz = 1 + 4*Math.abs(Math.sin(star.t*0.09));
         ctx.globalAlpha = a;
         ctx.fillStyle = '#FFFFFF';
-        ctx.fillRect(star.x - 1, star.y - s, 2, s * 2);
-        ctx.fillRect(star.x - s, star.y - 1, s * 2, 2);
+        ctx.fillRect(star.x-1, star.y-sz, 2, sz*2);
+        ctx.fillRect(star.x-sz, star.y-1, sz*2, 2);
         ctx.globalAlpha = 1;
       });
 
-      // Move the GIF
-      catEl.style.left = state.x + 'px';
-      catEl.style.top  = state.y + 'px';
-      catEl.style.transform = state.dx < 0 ? 'scaleX(-1)' : 'scaleX(1)';
+      // Draw the cat pixel art (flip when moving left)
+      ctx.save();
+      if (state.dx < 0) {
+        ctx.translate(state.x + CAT_W, state.y);
+        ctx.scale(-1, 1);
+        drawCat(0, 0, state.frame);
+      } else {
+        drawCat(state.x, state.y, state.frame);
+      }
+      ctx.restore();
 
       animId = requestAnimationFrame(animate);
     };
@@ -1095,17 +1133,7 @@ function NyanCat() {
     return () => { cancelAnimationFrame(animId); window.removeEventListener('resize', resize); };
   }, []);
 
-  return (
-    <>
-      <canvas ref={canvasRef} style={{ position:'fixed', top:0, left:0, pointerEvents:'none', zIndex:99998 }} />
-      <img
-        ref={catRef}
-        src="/nyan.gif"
-        alt=""
-        style={{ position:'fixed', top:0, left:0, width:`90px`, imageRendering:'pixelated', pointerEvents:'none', zIndex:99999 }}
-      />
-    </>
-  );
+  return <canvas ref={canvasRef} style={{ position:'fixed', top:0, left:0, pointerEvents:'none', zIndex:99999 }} />;
 }
 
 /* ─── AVATAR SELECTION MODAL ─── */
