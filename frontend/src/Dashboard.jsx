@@ -106,6 +106,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-dark-900 text-dark-100 font-sans pb-12">
+      <NyanCat />
       {reviewTrack && <ReviewModal track={reviewTrack} onClose={()=>setReviewTrack(null)}/>}
       {playlistTrack && <PlaylistModal track={playlistTrack} onClose={()=>setPlaylistTrack(null)}/>}
       {showAvatarModal && <AvatarSelectionModal onClose={() => setShowAvatarModal(false)} setProfileAvatar={setProfileAvatar} />}
@@ -997,6 +998,137 @@ function CDBurnerWidget({ burnQueue, setBurnQueue }) {
         </button>
       </div>
     </div>
+  );
+}
+
+/* ─── NYAN CAT ─── */
+function NyanCat() {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    const P = 3; // pixel size
+    const CAT_W = 22 * P, CAT_H = 20 * P;
+    const SPEED = 5;
+    const rainbow = ['#FF0000', '#FF7F00', '#FFFF00', '#00CC00', '#0066FF', '#8800FF'];
+
+    const state = {
+      x: Math.random() * (window.innerWidth - CAT_W),
+      y: Math.random() * (window.innerHeight - CAT_H),
+      dx: SPEED * (Math.random() > 0.5 ? 1 : -1),
+      dy: SPEED * 0.55 * (Math.random() > 0.5 ? 1 : -1),
+      frame: 0,
+      trail: []
+    };
+
+    const dp = (x, y, w, h, color) => {
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y, w * P, h * P);
+    };
+
+    const drawCat = (x, y, frame) => {
+      const legUp = frame % 8 < 4;
+      // Pop-tart body
+      dp(x+2,y+5, 14,10, '#FFB5C8');
+      dp(x+2,y+5, 14,1,  '#CC8899'); // top edge
+      dp(x+2,y+14,14,1,  '#CC8899'); // bottom edge
+      dp(x+2,y+5, 1,10,  '#CC8899'); // left edge
+      dp(x+15,y+5,1,10,  '#CC8899'); // right edge
+      // Sprinkles on pop-tart
+      [['#FF6699',5,7],['#FF99CC',10,8],['#FFBBDD',7,11],['#FF6699',12,10],['#FF99CC',4,12]].forEach(([c,sx,sy])=>dp(x+sx,y+sy,1,1,c));
+      // Cat head
+      dp(x+14,y+1, 8,9, '#888888');
+      // Ears
+      dp(x+14,y,   2,2, '#888888'); dp(x+14,y+1,1,1,'#FF99AA');
+      dp(x+19,y,   2,2, '#888888'); dp(x+19,y+1,1,1,'#FF99AA');
+      // Eyes
+      dp(x+15,y+3, 2,2, '#000000');
+      dp(x+19,y+3, 2,2, '#000000');
+      // Eye shine
+      dp(x+16,y+3, 1,1, '#FFFFFF');
+      dp(x+20,y+3, 1,1, '#FFFFFF');
+      // Nose
+      dp(x+17,y+6, 1,1, '#FF99AA');
+      // Mouth
+      dp(x+16,y+7, 1,1, '#333333'); dp(x+18,y+7,1,1,'#333333');
+      // Cheeks
+      dp(x+14,y+6, 1,1, '#FFAACC'); dp(x+21,y+6,1,1,'#FFAACC');
+      // Tail
+      dp(x-1,y+7,  2,2, '#888888');
+      dp(x-2,y+5,  2,2, '#888888');
+      // Legs (animated)
+      const lo = legUp ? 1 : 0;
+      dp(x+3,  y+14+lo,  3,3, '#888888');
+      dp(x+8,  y+14+(1-lo), 3,3, '#888888');
+      dp(x+11, y+14+lo,  3,3, '#888888');
+    };
+
+    let animId;
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Move
+      state.x += state.dx;
+      state.y += state.dy;
+      state.frame++;
+
+      // Bounce
+      if (state.x + CAT_W > canvas.width)  { state.dx = -Math.abs(state.dx); }
+      if (state.x < 0)                      { state.dx =  Math.abs(state.dx); }
+      if (state.y + CAT_H > canvas.height)  { state.dy = -Math.abs(state.dy); }
+      if (state.y < 0)                      { state.dy =  Math.abs(state.dy); }
+
+      // Record trail at cat center-left
+      state.trail.push({ x: state.x, y: state.y });
+      if (state.trail.length > 45) state.trail.shift();
+
+      // Draw rainbow trail
+      const STRIPE = 4;
+      state.trail.forEach((pt, i) => {
+        const age = i / state.trail.length;
+        const len = (i + 1) * 8;
+        rainbow.forEach((color, ci) => {
+          ctx.globalAlpha = age * 0.85;
+          ctx.fillStyle = color;
+          // Trail extends backward from each recorded position
+          ctx.fillRect(pt.x - (state.trail.length - i) * 7, pt.y + CAT_H / 2 - 12 + ci * STRIPE, len, STRIPE);
+        });
+      });
+      ctx.globalAlpha = 1;
+
+      drawCat(Math.round(state.x / P), Math.round(state.y / P), state.frame);
+
+      // Star particles occasionally
+      if (state.frame % 12 === 0) {
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = '12px monospace';
+        ctx.fillText('★', state.x + CAT_W + 10, state.y - 10 + Math.random() * 20);
+      }
+
+      animId = requestAnimationFrame(animate);
+    };
+
+    animId = requestAnimationFrame(animate);
+    return () => {
+      cancelAnimationFrame(animId);
+      window.removeEventListener('resize', resize);
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{ position: 'fixed', top: 0, left: 0, pointerEvents: 'none', zIndex: 99999 }}
+    />
   );
 }
 
