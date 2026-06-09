@@ -28,12 +28,20 @@ export default function Dashboard() {
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
 
   useEffect(() => {
-    // Fetch and increment visitor count
-    fetch('https://api.counterapi.dev/v1/tastelytics_app/visitors/up')
+    // Check if new visitor or returning visitor
+    const isReturning = localStorage.getItem('tastelytics_visited');
+    const endpoint = isReturning 
+      ? 'https://api.counterapi.dev/v1/tastelytics_app/visitors/' // just fetch count
+      : 'https://api.counterapi.dev/v1/tastelytics_app/visitors/up'; // increment
+
+    fetch(endpoint)
       .then(res => res.json())
       .then(data => {
-        if (data && data.count) {
+        if (data && data.count !== undefined) {
           setVisitorCount(String(data.count).padStart(7, '0'));
+          if (!isReturning) {
+            localStorage.setItem('tastelytics_visited', 'true');
+          }
         }
       })
       .catch(err => console.error("Counter API failed", err));
