@@ -182,8 +182,8 @@ export default function Dashboard() {
         <main className="md:col-span-9">
           {view === 'home' && <HomeView feedArtists={feedArtists} recTracks={recTracks} newReleases={newReleases} feedLoading={feedLoading} onArtist={a=>{setSelectedArtist(a);setView('artist');}} onAlbum={a=>{setSelectedAlbum(a);setView('album');}} onReview={setReviewTrack} onPlaylist={setPlaylistTrack} onBurn={handleBurn}/>}
           {view === 'search' && <SearchView searchQ={searchQ} searchResults={searchResults} searching={searching} searchTab={searchTab} setSearchTab={setSearchTab} onArtist={a=>{setSelectedArtist(a);setView('artist');}} onAlbum={a=>{setSelectedAlbum(a);setView('album');}} onReview={setReviewTrack} onPlaylist={setPlaylistTrack} onBurn={handleBurn}/>}
-          {view === 'artist' && selectedArtist && <ArtistPage artist={selectedArtist} onBack={()=>nav('home')} onArtist={a=>{setSelectedArtist(a);}} onAlbum={a=>{setSelectedAlbum(a);setView('album');}} onReview={setReviewTrack} onPlaylist={setPlaylistTrack} onBurn={handleBurn}/>}
-          {view === 'album' && selectedAlbum && <AlbumPage album={selectedAlbum} onBack={()=>selectedArtist?setView('artist'):nav('home')} onArtist={a=>{setSelectedArtist(a);setView('artist');}} onReview={setReviewTrack} onPlaylist={setPlaylistTrack} onBurn={handleBurn}/>}
+          {view === 'artist' && selectedArtist && <ArtistPage artist={selectedArtist} onBack={()=>setView('home')} onArtist={a=>{setSelectedArtist(a);}} onAlbum={a=>{setSelectedAlbum(a);setView('album');}} onReview={setReviewTrack} onPlaylist={setPlaylistTrack} onBurn={handleBurn}/>}
+          {view === 'album' && selectedAlbum && <AlbumPage album={selectedAlbum} onBack={()=>selectedArtist?setView('artist'):setView('home')} onArtist={a=>{setSelectedArtist(a);setView('artist');}} onReview={setReviewTrack} onPlaylist={setPlaylistTrack} onBurn={handleBurn}/>}
           {view === 'library' && <LibraryView/>}
           {view === 'analysis' && <AnalysisView onReview={setReviewTrack} onPlaylist={setPlaylistTrack} onArtist={a=>{setSelectedArtist(a);setView('artist');}}/>}
         </main>
@@ -270,7 +270,7 @@ function HomeView({ feedArtists, recTracks, newReleases, feedLoading, onArtist, 
       {recTracks.length > 0 && (
         <section className="win95-window">
           <div className="win95-titlebar"><span>RECOMMENDED.EXE</span></div>
-          <div className="space-y-2 p-4 bg-dark-800">{recTracks.slice(0,8).map(t=><TrackRow key={t.id} track={t} onReview={onReview} onPlaylist={onPlaylist} onBurn={onBurn}/>)}</div>
+          <div className="space-y-2 p-4 bg-dark-800">{recTracks.slice(0,8).map(t=><TrackRow key={t.id} track={t} onReview={onReview} onPlaylist={onPlaylist} onBurn={onBurn} onArtist={onArtist}/>)}</div>
         </section>
       )}
 
@@ -345,7 +345,7 @@ function SearchView({ searchQ, searchResults, searching, searchTab, setSearchTab
         {(searchTab==='all'||searchTab==='tracks') && searchResults.tracks?.items?.length > 0 && <>
           <section className="win95-window mb-10">
             <div className="win95-titlebar"><span>TRACKS.EXE</span></div>
-            <div className="space-y-2 p-4 bg-dark-800">{searchResults.tracks.items.slice(0,searchTab==='tracks'?20:8).map(t=><TrackRow key={t.id} track={t} onReview={onReview} onPlaylist={onPlaylist} onBurn={onBurn}/>)}</div>
+            <div className="space-y-2 p-4 bg-dark-800">{searchResults.tracks.items.slice(0,searchTab==='tracks'?20:8).map(t=><TrackRow key={t.id} track={t} onReview={onReview} onPlaylist={onPlaylist} onBurn={onBurn} onArtist={onArtist}/>)}</div>
           </section>
         </>}
 
@@ -426,7 +426,7 @@ function ArtistPage({ artist, onBack, onArtist, onAlbum, onReview, onPlaylist, o
           {tracks.length > 0 && (
             <section className="win95-window">
               <div className="win95-titlebar"><span>TOP_TRACKS.EXE</span></div>
-              <div className="space-y-2 p-4 bg-dark-800">{tracks.map(t=><TrackRow key={t.id} track={t} onReview={onReview} onPlaylist={onPlaylist} onBurn={onBurn}/>)}</div>
+              <div className="space-y-2 p-4 bg-dark-800">{tracks.map(t=><TrackRow key={t.id} track={t} onReview={onReview} onPlaylist={onPlaylist} onBurn={onBurn} onArtist={onArtist}/>)}</div>
             </section>
           )}
 
@@ -725,7 +725,7 @@ function AnalysisView({ onReview, onPlaylist, onArtist }) {
           <div className="win95-titlebar"><span>TOP_TRACKS.LST</span></div>
           <div className="p-4 bg-dark-800 space-y-2">
             {data.top_tracks?.length > 0 ? data.top_tracks.slice(0, 10).map((t, i) => (
-               <TrackRow key={t.id} track={t} onReview={onReview} onPlaylist={onPlaylist} />
+               <TrackRow key={t.id} track={t} onReview={onReview} onPlaylist={onPlaylist} onArtist={onArtist} />
             )) : (
                <span className="font-mono font-bold text-sm text-black bg-white px-2 py-1 border-[2px] border-dark-700 uppercase inline-block">NO TRACK DATA FOUND FOR THIS TIME RANGE.</span>
             )}

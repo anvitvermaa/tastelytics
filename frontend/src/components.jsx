@@ -163,7 +163,7 @@ export function ReviewsPanel({ trackId, padding = "pl-16" }) {
   );
 }
 
-export function TrackRow({ track, onReview, onPlaylist, onBurn }) {
+export function TrackRow({ track, onReview, onPlaylist, onBurn, onArtist }) {
   const [showReviews, setShowReviews] = useState(false);
   const img = track.album?.images?.[2]?.url || track.album?.images?.[0]?.url;
   const spotifyUrl = `https://open.spotify.com/track/${track.id}`;
@@ -173,7 +173,19 @@ export function TrackRow({ track, onReview, onPlaylist, onBurn }) {
         <img src={img} className="w-12 h-12 shrink-0 object-cover border-[3px] border-dark-700 shadow-retro-sm" alt=""/>
         <div className="flex-1 min-w-0">
           <p className="text-black font-extrabold uppercase tracking-widest truncate text-sm">{track.name}</p>
-          <p className="text-dark-600 font-bold uppercase tracking-widest text-xs truncate">{track.artists?.map(a=>a.name).join(', ')}</p>
+          <p className="text-dark-600 font-bold uppercase tracking-widest text-xs truncate">
+            {track.artists?.map((a, i) => (
+              <span key={a.id}>
+                <span 
+                  className={`transition-colors ${onArtist ? 'cursor-pointer hover:text-[#0000A0] hover:underline' : ''}`}
+                  onClick={() => onArtist && onArtist(a)}
+                >
+                  {a.name}
+                </span>
+                {i < track.artists.length - 1 && ', '}
+              </span>
+            ))}
+          </p>
         </div>
         <div className="flex gap-2 flex-wrap sm:flex-nowrap">
           <a href={spotifyUrl} target="_blank" rel="noopener noreferrer" className="win95-button p-1.5" title="Open in Spotify"><ExternalLink size={16} strokeWidth={3}/></a>
