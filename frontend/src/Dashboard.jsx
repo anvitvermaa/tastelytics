@@ -1003,121 +1003,52 @@ function CDBurnerWidget({ burnQueue, setBurnQueue }) {
 
 /* ─── NYAN CAT ─── */
 function NyanCat() {
-  const canvasRef = useRef(null);
-  const catRef   = useRef(null);
+  const catRef = useRef(null);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    const ctx    = canvas.getContext('2d');
-    const catEl  = catRef.current;
-
-    const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
-    resize();
-    window.addEventListener('resize', resize);
-
-    const CAT_W = 120, CAT_H = 48;
-    const SPEED  = 7;
-    const STRIPE = 8;
-    const rainbow = ['#FF0000','#FF9900','#FFFF00','#33CC00','#0066FF','#9933FF'];
-
-    const state = {
-      x: window.innerWidth  * 0.35,
-      y: window.innerHeight * 0.4,
-      dx: SPEED, dy: SPEED * 0.42,
-      trail: [],
-      stars: Array.from({length:14}, () => ({
-        x: Math.random() * window.innerWidth,
-        y: Math.random() * window.innerHeight,
-        t: Math.random() * 80
-      }))
-    };
-
+    const catEl = catRef.current;
+    const W = 120, H = 48;
+    let x  = window.innerWidth  * 0.3;
+    let y  = window.innerHeight * 0.4;
+    let dx = 5;
+    let dy = 3;
     let animId;
-    const animate = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      state.x += state.dx;
-      state.y += state.dy;
-
-      if (state.x + CAT_W > canvas.width)  state.dx = -Math.abs(state.dx);
-      if (state.x < 0)                      state.dx =  Math.abs(state.dx);
-      if (state.y + CAT_H > canvas.height)  state.dy = -Math.abs(state.dy);
-      if (state.y < 0)                      state.dy =  Math.abs(state.dy);
-
-      state.trail.push({ x: state.x, y: state.y });
-      if (state.trail.length > 100) state.trail.shift();
-
-      // 6-stripe rainbow trail following path
-      if (state.trail.length > 2) {
-        const baseY = CAT_H / 2 - (rainbow.length * STRIPE) / 2;
-        rainbow.forEach((color, ci) => {
-          ctx.strokeStyle = color;
-          ctx.lineWidth   = STRIPE;
-          ctx.lineCap     = 'square';
-          ctx.lineJoin    = 'round';
-          ctx.beginPath();
-          state.trail.forEach((pt, i) => {
-            // anchor trail to the back of the cat (left or right depending on direction)
-            const px = state.dx >= 0 ? pt.x + CAT_W * 0.12 : pt.x + CAT_W * 0.88;
-            const py = pt.y + baseY + ci * STRIPE + STRIPE / 2;
-            i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
-          });
-          ctx.stroke();
-        });
-      }
-
-      // Twinkling stars
-      state.stars.forEach(star => {
-        star.t++;
-        if (star.t > 90 && state.trail.length > 0) {
-          const pt = state.trail[Math.floor(Math.random() * state.trail.length)];
-          star.x = pt.x + (Math.random() - 0.5) * 160;
-          star.y = pt.y + (Math.random() - 0.5) * 80;
-          star.t = 0;
-        }
-        const a  = 0.15 + 0.85 * Math.abs(Math.sin(star.t * 0.09));
-        const sz = 1    + 5    * Math.abs(Math.sin(star.t * 0.09));
-        ctx.globalAlpha = a;
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillRect(star.x - 1,  star.y - sz, 2,      sz * 2);
-        ctx.fillRect(star.x - sz, star.y - 1,  sz * 2, 2);
-        ctx.globalAlpha = 1;
-      });
-
-      // Move & flip cat
-      catEl.style.left      = state.x + 'px';
-      catEl.style.top       = state.y + 'px';
-      catEl.style.transform = state.dx < 0 ? 'scaleX(-1)' : 'scaleX(1)';
-
-      animId = requestAnimationFrame(animate);
+    const tick = () => {
+      x += dx; y += dy;
+      if (x + W > window.innerWidth)  { dx = -Math.abs(dx); x = window.innerWidth  - W; }
+      if (x < 0)                      { dx =  Math.abs(dx); x = 0; }
+      if (y + H > window.innerHeight) { dy = -Math.abs(dy); y = window.innerHeight - H; }
+      if (y < 0)                      { dy =  Math.abs(dy); y = 0; }
+      catEl.style.left      = x + 'px';
+      catEl.style.top       = y + 'px';
+      catEl.style.transform = dx < 0 ? 'scaleX(-1)' : 'scaleX(1)';
+      animId = requestAnimationFrame(tick);
     };
 
-    animId = requestAnimationFrame(animate);
-    return () => { cancelAnimationFrame(animId); window.removeEventListener('resize', resize); };
+    animId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(animId);
   }, []);
 
   return (
-    <>
-      <canvas ref={canvasRef} style={{ position:'fixed', top:0, left:0, pointerEvents:'none', zIndex:99998 }} />
-      <img
-        ref={catRef}
-        src="/nyan.gif"
-        alt=""
-        style={{
-          position:        'fixed',
-          top:             0,
-          left:            0,
-          width:           '120px',
-          height:          '48px',
-          pointerEvents:   'none',
-          zIndex:          99999,
-          mixBlendMode:    'screen',
-          imageRendering:  'pixelated',
-        }}
-      />
-    </>
+    <img
+      ref={catRef}
+      src="/nyan.gif"
+      alt=""
+      style={{
+        position:       'fixed',
+        top:            0,
+        left:           0,
+        width:          '120px',
+        height:         '48px',
+        pointerEvents:  'none',
+        zIndex:         99999,
+        imageRendering: 'pixelated',
+      }}
+    />
   );
 }
+
 
 /* ─── AVATAR SELECTION MODAL ─── */
 function AvatarSelectionModal({ onClose, setProfileAvatar }) {
