@@ -1010,7 +1010,7 @@ function NyanCat() {
   useEffect(() => {
     const el  = catRef.current;
     const hi  = hiRef.current;
-    const W = 100, H = 46;
+    const W = 80, H = 80;
 
     let { x, y } = posRef.current;
     let dx = 2.5, dy = 1.2;
@@ -1118,8 +1118,8 @@ function NyanCat() {
           position:       'fixed',
           top:            0,
           left:           0,
-          width:          '100px',
-          height:         '46px',
+          width:          '80px',
+          height:         '80px',
           pointerEvents:  'auto',
           cursor:         'pointer',
           zIndex:         99999,
