@@ -1111,7 +1111,7 @@ function NyanCat() {
       {/* Nyan Cat GIF */}
       <img
         ref={catRef}
-        src="/nyan.gif"
+        src="/nyan.png"
         alt="nyan cat"
         onClick={sayHi}
         style={{
