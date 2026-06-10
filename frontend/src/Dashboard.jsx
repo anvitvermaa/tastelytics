@@ -401,11 +401,11 @@ function ArtistPage({ artist, onBack, onArtist, onAlbum, onReview, onPlaylist, o
       <div className="flex gap-6 mb-12 flex-wrap sm:flex-nowrap">
         <img src={img} className="w-48 h-48 object-cover border-[4px] border-dark-700 shadow-[inset_2px_2px_0_0_rgba(255,255,255,0.5)] shadow-retro grayscale hover:grayscale-0 transition-all" alt=""/>
         <div className="win95-window flex-1">
-          <div className="win95-titlebar"><span>{artist.name.toUpperCase()}.INFO</span></div>
+          <div className="win95-titlebar"><span>{(artist?.name || 'UNKNOWN').toUpperCase()}.INFO</span></div>
           <div className="flex flex-col justify-end bg-dark-800 p-6 flex-1">
             <p className="text-xs uppercase tracking-widest font-mono text-dark-500 font-bold mb-1 border-2 border-dark-700 inline-block px-1 w-max">Artist</p>
-            <h1 className="text-5xl font-extrabold text-brand-500 tracking-tighter mb-2 uppercase" style={{ textShadow: '2px 2px 0px #000' }}>{artist.name}</h1>
-            <p className="text-black font-bold uppercase tracking-widest text-sm mb-4">{artist.genres?.slice(0,3).join(' · ') || 'Music'}</p>
+            <h1 className="text-5xl font-extrabold text-brand-500 tracking-tighter mb-2 uppercase" style={{ textShadow: '2px 2px 0px #000' }}>{artist?.name || 'Unknown Artist'}</h1>
+            <p className="text-black font-bold uppercase tracking-widest text-sm mb-4">{artist?.genres?.slice(0,3).join(' · ') || 'Music'}</p>
             <div className="flex flex-wrap items-center gap-4">
               {followers && <span className="win95-inset px-2 py-1 font-mono text-sm font-bold">{followers.toLocaleString()} FOLLOWERS</span>}
               <a href={spotifyUrl} target="_blank" rel="noopener noreferrer" className="win95-button px-3 py-1 text-sm"><ExternalLink size={16} strokeWidth={3} className="mr-1"/>SPOTIFY</a>

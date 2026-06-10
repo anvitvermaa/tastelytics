@@ -178,7 +178,10 @@ export function TrackRow({ track, onReview, onPlaylist, onBurn, onArtist }) {
               <span key={a.id}>
                 <span 
                   className={`transition-colors ${onArtist ? 'cursor-pointer hover:text-[#0000A0] hover:underline' : ''}`}
-                  onClick={() => onArtist && onArtist(a)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (onArtist) onArtist(a);
+                  }}
                 >
                   {a.name}
                 </span>
