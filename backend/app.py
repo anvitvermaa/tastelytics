@@ -419,6 +419,17 @@ def handler(event, context):
             )
             return cors_response(200, {"message": "Profile updated"})
 
+        # ─── USERS ───
+        elif http_method == 'GET' and path == '/users/count':
+            users_table = dynamodb.Table(USERS_TABLE_NAME)
+            try:
+                # Scan to count total users
+                response = users_table.scan(Select='COUNT')
+                count = response.get('Count', 0)
+                return cors_response(200, {"count": count})
+            except Exception as e:
+                return cors_response(500, {"error": str(e)})
+
         # ─── SPOTIFY OAUTH & TASTE ANALYSIS ───
         elif http_method == 'POST' and path == '/auth/spotify':
             body = json.loads(event.get('body', '{}'))

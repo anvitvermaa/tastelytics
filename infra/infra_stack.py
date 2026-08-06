@@ -239,6 +239,10 @@ class TastelyticsStack(Stack):
         profile_resource.add_method("GET", lambda_integration)
         profile_resource.add_method("POST", lambda_integration)
 
+        users_route = api.root.add_resource("users")
+        users_count = users_route.add_resource("count")
+        users_count.add_method("GET", lambda_integration)
+
         # Auth Routes
         auth_resource = api.root.add_resource("auth")
         auth_spotify = auth_resource.add_resource("spotify")
