@@ -35,7 +35,7 @@ export function ReviewModal({ track, onClose }) {
       const isAlbum = track.entity_type === 'album';
       const entityLabel = track.entity_type ? track.entity_type.charAt(0).toUpperCase() + track.entity_type.slice(1) : 'Track';
       const imgUrl = isArtist ? track.images?.[0]?.url : (track.album?.images?.[0]?.url || track.images?.[0]?.url);
-      const artName = isArtist ? track.name : (track.artists?.map(a=>a.name).join(', '));
+      const artName = isArtist ? track.name : ((track.artists || []).map(a=>a.name).join(', '));
       
       await apiFetch(`/reviews`, {
         method: 'POST', headers: {'Content-Type':'application/json'},
@@ -66,7 +66,7 @@ export function ReviewModal({ track, onClose }) {
           <div className="min-w-0">
             <p className="text-xs text-dark-700 font-extrabold mb-0.5 uppercase tracking-widest">{track.entity_type || 'Track'}</p>
             <p className="text-black font-extrabold uppercase tracking-tight truncate text-lg leading-tight">{track.name}</p>
-            {track.entity_type !== 'artist' && <p className="text-brand-500 font-bold text-xs uppercase tracking-widest">{track.artists?.map(a=>a.name).join(', ')}</p>}
+            {track.entity_type !== 'artist' && <p className="text-brand-500 font-bold text-xs uppercase tracking-widest">{(track.artists || []).map(a=>a.name).join(', ')}</p>}
           </div>
         </div>
         {done ? (

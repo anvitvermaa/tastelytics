@@ -4,7 +4,33 @@ import { Search, Library, PlayCircle, ArrowLeft, Music, Trash2, ChevronDown, Che
 import { API, getUserId, TrackRow, ReviewModal, PlaylistModal, Spinner, ReviewsPanel } from './components';
 
 export default function Dashboard() {
-  const [view, setView] = useState('home');
+  const [viewState, _setView] = useState('home');
+  const view = viewState;
+  
+  const setView = React.useCallback((v) => {
+    if (v !== viewState) {
+      window.history.pushState({ view: v }, '', `?view=${v}`);
+    }
+    _setView(v);
+  }, [viewState]);
+
+  useEffect(() => {
+    const onPopState = (e) => {
+      if (e.state && e.state.view) {
+        _setView(e.state.view);
+      } else {
+        const urlParams = new URLSearchParams(window.location.search);
+        _setView(urlParams.get('view') || 'home');
+      }
+    };
+    window.addEventListener('popstate', onPopState);
+    if (!window.history.state) {
+      const initialView = new URLSearchParams(window.location.search).get('view') || 'home';
+      window.history.replaceState({ view: initialView }, '', `?view=${initialView}`);
+      _setView(initialView);
+    }
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
   const [searchQ, setSearchQ] = useState('');
   const [searchTab, setSearchTab] = useState('all');
   const [searchResults, setSearchResults] = useState(null);
@@ -591,7 +617,7 @@ function LibraryView() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
           {playlists.map(pl=>(
             <div key={pl.PlaylistID} className="win95-window transition-transform hover:shadow-retro-hover">
-              <div className="win95-titlebar"><span>{pl.Name.toUpperCase()}.LST</span></div>
+              <div className="win95-titlebar"><span>{(pl.Name || 'PLAYLIST').toUpperCase()}.LST</span></div>
               <div className="p-6 bg-dark-800 flex-1">
                 <div className="flex items-start justify-between mb-6 border-b-[3px] border-dark-700 pb-4">
                 <div><h3 className="text-black font-extrabold text-2xl uppercase tracking-tighter">{pl.Name}</h3><p className="text-brand-500 font-mono font-bold">{(pl.Tracks||[]).length} tracks</p></div>
