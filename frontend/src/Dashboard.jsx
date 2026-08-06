@@ -116,7 +116,7 @@ export default function Dashboard() {
     Promise.all([
       apiFetch(`/feed?genres=${encodeURIComponent(genres)}`).then(r=>r.json()).catch(()=>({})),
       apiFetch(`/recommendations?user_id=${uid}&genres=${encodeURIComponent(genres)}&limit=15`).then(r=>r.json()).catch(()=>({})),
-      apiFetch(`/new-releases?limit=10`).then(r=>r.json()).catch(()=>({}))
+      apiFetch(`/new-releases?limit=10&genres=${encodeURIComponent(genres)}`).then(r=>r.json()).catch(()=>({}))
     ]).then(([feed, recs, releases]) => {
       setFeedArtists(feed.artists?.items || []);
       setRecTracks(recs.tracks || []);

@@ -105,7 +105,7 @@ def get_spotify_artists_by_genre(genres):
         all_artists = []
         seen_ids = set()
         for genre in genre_list:
-            data = spotify_get("/search", {"q": genre, "type": "artist", "limit": 10})
+            data = spotify_get("/search", {"q": f'genre:"{genre}"', "type": "artist", "limit": 10})
             for artist in data.get("artists", {}).get("items", []):
                 if artist["id"] not in seen_ids:
                     seen_ids.add(artist["id"])
@@ -322,12 +322,20 @@ def handler(event, context):
         # ─── NEW RELEASES ───
         elif http_method == 'GET' and path == '/new-releases':
             limit = int(query_params.get('limit', '20'))
+            genres = query_params.get('genres', '')
             try:
-                data = spotify_get("/browse/new-releases", {"limit": limit, "country": "US"})
+                if genres:
+                    genre_list = [g.strip().lower() for g in genres.split(',') if g.strip()]
+                    query = f'tag:new genre:"{genre_list[0]}"'
+                    data = spotify_get("/search", {"q": query, "type": "album", "limit": limit, "market": "US"})
+                    # Sometimes Spotify search with tag:new genre returns empty, fallback to global new releases
+                    if not data.get("albums", {}).get("items"):
+                        data = spotify_get("/browse/new-releases", {"limit": limit, "country": "US"})
+                else:
+                    data = spotify_get("/browse/new-releases", {"limit": limit, "country": "US"})
                 return cors_response(200, {"albums": data.get("albums", {})})
             except Exception as e:
                 print(f"New releases error: {e}")
-                # Fallback: search for recent popular tracks
                 data = spotify_get("/search", {"q": "tag:new", "type": "album", "limit": limit, "market": "US"})
                 return cors_response(200, {"albums": data.get("albums", {}), "fallback": True})
 
