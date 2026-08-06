@@ -119,7 +119,9 @@ class TastelyticsStack(Stack):
             self, "TastelyticsTable",
             partition_key=dynamodb.Attribute(name="TrackID", type=dynamodb.AttributeType.STRING),
             sort_key=dynamodb.Attribute(name="UserID_Timestamp", type=dynamodb.AttributeType.STRING),
-            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,
+            billing_mode=dynamodb.BillingMode.PROVISIONED,
+            read_capacity=5,
+            write_capacity=5,
             removal_policy=RemovalPolicy.DESTROY
         )
 
@@ -134,21 +136,25 @@ class TastelyticsStack(Stack):
             self, "TastelyticsPlaylistsTable",
             partition_key=dynamodb.Attribute(name="UserID", type=dynamodb.AttributeType.STRING),
             sort_key=dynamodb.Attribute(name="PlaylistID", type=dynamodb.AttributeType.STRING),
-            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,
+            billing_mode=dynamodb.BillingMode.PROVISIONED,
+            read_capacity=5,
+            write_capacity=5,
             removal_policy=RemovalPolicy.DESTROY
         )
 
         users_table = dynamodb.Table(
             self, "TastelyticsUsersTable",
             partition_key=dynamodb.Attribute(name="UserID", type=dynamodb.AttributeType.STRING),
-            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,
+            billing_mode=dynamodb.BillingMode.PROVISIONED,
+            read_capacity=5,
+            write_capacity=5,
             removal_policy=RemovalPolicy.DESTROY
         )
 
         api_lambda = _lambda.DockerImageFunction(
             self, "TastelyticsApiHandler",
             code=_lambda.DockerImageCode.from_image_asset("../backend"),
-            memory_size=1024,
+            memory_size=256,
             timeout=Duration.seconds(60),
             environment={
                 "DYNAMODB_TABLE": table.table_name,

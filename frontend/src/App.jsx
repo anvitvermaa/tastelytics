@@ -35,7 +35,22 @@ function AuthProvider({ children }) {
       localStorage.setItem('tastelytics_uid', user.userId);
       
       // Check localStorage for onboarding completion
-      const onboardingDone = localStorage.getItem('tastelytics_onboarding_done');
+      let onboardingDone = localStorage.getItem('tastelytics_onboarding_done');
+      
+      if (!onboardingDone) {
+        try {
+          const res = await fetch(`${API_URL}/profile?user_id=${user.userId}`);
+          const data = await res.json();
+          if (res.ok && data.profile) {
+            localStorage.setItem('tastelytics_profile', JSON.stringify(data.profile));
+            localStorage.setItem('tastelytics_onboarding_done', 'true');
+            onboardingDone = true;
+          }
+        } catch (err) {
+          console.error("Failed to fetch profile", err);
+        }
+      }
+      
       setNeedsOnboarding(!onboardingDone);
       setAuthStatus('authenticated');
     } catch {
@@ -177,6 +192,16 @@ function Onboarding() {
         selected_artists: selectedArtists
       };
       localStorage.setItem('tastelytics_profile', JSON.stringify(profileData));
+
+      // Save profile to backend
+      const uid = localStorage.getItem('tastelytics_uid');
+      if (uid) {
+        await fetch(`${API_URL}/profile`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ user_id: uid, profile_data: profileData })
+        });
+      }
 
       // Mark onboarding as complete and navigate
       completeOnboarding();

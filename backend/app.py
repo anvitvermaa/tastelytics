@@ -391,6 +391,34 @@ def handler(event, context):
             )
             return cors_response(200, {"message": "Playlist deleted"})
 
+        # ─── PROFILE ───
+        elif http_method == 'GET' and path == '/profile':
+            user_id = query_params.get('user_id', '')
+            if not user_id:
+                return cors_response(400, {"error": "Missing user_id"})
+            users_table = dynamodb.Table(USERS_TABLE_NAME)
+            response = users_table.get_item(Key={"UserID": user_id})
+            if 'Item' in response and response['Item'].get('ProfileData'):
+                return cors_response(200, {"profile": response['Item']['ProfileData']})
+            return cors_response(404, {"error": "Profile not found"})
+
+        elif http_method == 'POST' and path == '/profile':
+            body = json.loads(event.get('body', '{}'))
+            user_id = body.get('user_id')
+            profile_data = body.get('profile_data')
+            if not user_id or not profile_data:
+                return cors_response(400, {"error": "Missing user_id or profile_data"})
+            users_table = dynamodb.Table(USERS_TABLE_NAME)
+            users_table.update_item(
+                Key={'UserID': user_id},
+                UpdateExpression='SET ProfileData = :pd, UpdatedAt = :ua',
+                ExpressionAttributeValues={
+                    ':pd': profile_data,
+                    ':ua': str(int(time.time()))
+                }
+            )
+            return cors_response(200, {"message": "Profile updated"})
+
         # ─── SPOTIFY OAUTH & TASTE ANALYSIS ───
         elif http_method == 'POST' and path == '/auth/spotify':
             body = json.loads(event.get('body', '{}'))
