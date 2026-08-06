@@ -475,14 +475,14 @@ function AlbumPage({ album: albumProp, onBack, onArtist, onReview, onPlaylist, o
     apiFetch(`/album/${albumProp.id}`).then(r=>r.json()).then(d => {
       if (d.album) {
         setAlbum(d.album);
-        setTracks((d.album.tracks?.items || []).map(t => ({...t, album: { images: d.album.images, name: d.album.name, id: d.album.id }})));
+        setTracks((d.album.tracks?.items || []).map(t => ({...t, album: { images: d.album.images, name: d.album.name, id: d.album?.id }})));
       }
       setLoading(false);
     }).catch(()=>setLoading(false));
   }, [albumProp.id]);
 
-  const img = album.images?.[0]?.url;
-  const spotifyUrl = `https://open.spotify.com/album/${album.id}`;
+  const img = album?.images?.[0]?.url;
+  const spotifyUrl = `https://open.spotify.com/album/${album?.id}`;
   const totalMs = tracks.reduce((s,t) => s + (t.duration_ms||0), 0);
   const mins = Math.round(totalMs / 60000);
 
@@ -493,10 +493,10 @@ function AlbumPage({ album: albumProp, onBack, onArtist, onReview, onPlaylist, o
       <div className="flex gap-6 mb-12 flex-wrap sm:flex-nowrap">
         <img src={img} className="w-48 h-48 object-cover border-[4px] border-dark-700 shadow-[inset_2px_2px_0_0_rgba(255,255,255,0.5)] shadow-retro grayscale hover:grayscale-0 transition-all" alt=""/>
         <div className="win95-window flex-1">
-          <div className="win95-titlebar"><span>{album.name.toUpperCase()}.INFO</span></div>
+          <div className="win95-titlebar"><span>{(album?.name || "ALBUM").toUpperCase()}.INFO</span></div>
           <div className="flex flex-col justify-end bg-dark-800 p-6 flex-1">
-            <p className="text-xs uppercase tracking-widest font-mono text-dark-500 font-bold mb-1 border-2 border-dark-700 inline-block px-1 w-max">{album.album_type || 'Album'}</p>
-            <h1 className="text-5xl font-extrabold text-brand-500 tracking-tighter mb-2 uppercase" style={{ textShadow: '2px 2px 0px #000' }}>{album.name}</h1>
+            <p className="text-xs uppercase tracking-widest font-mono text-dark-500 font-bold mb-1 border-2 border-dark-700 inline-block px-1 w-max">{album?.album_type || "Album"}</p>
+            <h1 className="text-5xl font-extrabold text-brand-500 tracking-tighter mb-2 uppercase" style={{ textShadow: '2px 2px 0px #000' }}>{album?.name || "Unknown Album"}</h1>
             <div className="flex items-center gap-2 font-mono text-black font-bold text-sm mb-4 uppercase tracking-widest">
               {album.artists?.map((a,i) => (
                 <span key={a.id}>
@@ -520,7 +520,7 @@ function AlbumPage({ album: albumProp, onBack, onArtist, onReview, onPlaylist, o
           <div className="win95-window">
             <div className="win95-titlebar"><span>REVIEWS.TXT</span></div>
             <div className="p-6 bg-dark-800">
-              <ReviewsPanel trackId={album.id} padding="pl-0" />
+              <ReviewsPanel trackId={album?.id} padding="pl-0" />
             </div>
           </div>
           <div className="win95-window">
