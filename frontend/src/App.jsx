@@ -1,3 +1,4 @@
+import { apiFetch } from './api';
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import { signInWithRedirect, getCurrentUser, fetchUserAttributes } from 'aws-amplify/auth';
@@ -39,7 +40,7 @@ function AuthProvider({ children }) {
       
       if (!onboardingDone) {
         try {
-          const res = await fetch(`${API_URL}/profile?user_id=${user.userId}`);
+          const res = await apiFetch(`/profile?user_id=${user.userId}`);
           const data = await res.json();
           if (res.ok && data.profile) {
             localStorage.setItem('tastelytics_profile', JSON.stringify(data.profile));
@@ -168,7 +169,7 @@ function Onboarding() {
     setStep(3);
     setIsLoading(true);
     try {
-      const res = await fetch(`${API_URL}/onboarding/recommendations?genres=${encodeURIComponent(selectedGenres.join(','))}`);
+      const res = await apiFetch(`/onboarding/recommendations?genres=${encodeURIComponent(selectedGenres.join(','))}`);
       const data = await res.json();
       if (data?.artists?.items) {
         setRecommendedArtists(data.artists.items);
@@ -196,7 +197,7 @@ function Onboarding() {
       // Save profile to backend
       const uid = localStorage.getItem('tastelytics_uid');
       if (uid) {
-        await fetch(`${API_URL}/profile`, {
+        await apiFetch(`/profile`, {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({ user_id: uid, profile_data: profileData })

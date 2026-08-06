@@ -179,10 +179,33 @@ class TastelyticsStack(Stack):
             )
         )
 
+        authorizer = apigw.CognitoUserPoolsAuthorizer(
+            self, "TastelyticsAuthorizer",
+            cognito_user_pools=[user_pool]
+        )
+        
+        auth_props = {
+            "authorizer": authorizer,
+            "authorization_type": apigw.AuthorizationType.COGNITO
+        }
+
+        # Add Usage Plan
+        plan = api.add_usage_plan("TastelyticsUsagePlan",
+            name="FreeTierPlan",
+            throttle=apigw.ThrottleSettings(
+                rate_limit=50,
+                burst_limit=100
+            )
+        )
+        plan.add_api_stage(
+            stage=api.deployment_stage
+        )
+
+
         reviews_resource = api.root.add_resource("reviews")
         lambda_integration = apigw.LambdaIntegration(api_lambda)
         
-        reviews_resource.add_method("POST", lambda_integration)
+        reviews_resource.add_method("POST", lambda_integration, **auth_props)
         
         track_resource = reviews_resource.add_resource("track").add_resource("{track_id}")
         track_resource.add_method("GET", lambda_integration)
@@ -198,7 +221,7 @@ class TastelyticsStack(Stack):
 
         # Personalized recommendations
         recs_resource = api.root.add_resource("recommendations")
-        recs_resource.add_method("GET", lambda_integration)
+        recs_resource.add_method("GET", lambda_integration, **auth_props)
 
         onboarding_resource = api.root.add_resource("onboarding")
         onboarding_recs = onboarding_resource.add_resource("recommendations")
@@ -226,18 +249,18 @@ class TastelyticsStack(Stack):
 
         # Playlists (no auth — user_id passed in body/query)
         playlists_resource = api.root.add_resource("playlists")
-        playlists_resource.add_method("GET", lambda_integration)
-        playlists_resource.add_method("POST", lambda_integration)
-        playlists_resource.add_method("PUT", lambda_integration)
-        playlists_resource.add_method("DELETE", lambda_integration)
+        playlists_resource.add_method("GET", lambda_integration, **auth_props)
+        playlists_resource.add_method("POST", lambda_integration, **auth_props)
+        playlists_resource.add_method("PUT", lambda_integration, **auth_props)
+        playlists_resource.add_method("DELETE", lambda_integration, **auth_props)
 
         # Home feed
         feed_resource = api.root.add_resource("feed")
         feed_resource.add_method("GET", lambda_integration)
 
         profile_resource = api.root.add_resource("profile")
-        profile_resource.add_method("GET", lambda_integration)
-        profile_resource.add_method("POST", lambda_integration)
+        profile_resource.add_method("GET", lambda_integration, **auth_props)
+        profile_resource.add_method("POST", lambda_integration, **auth_props)
 
         users_route = api.root.add_resource("users")
         users_count = users_route.add_resource("count")
@@ -246,12 +269,12 @@ class TastelyticsStack(Stack):
         # Auth Routes
         auth_resource = api.root.add_resource("auth")
         auth_spotify = auth_resource.add_resource("spotify")
-        auth_spotify.add_method("POST", lambda_integration)
+        auth_spotify.add_method("POST", lambda_integration, **auth_props)
         
         # Spotify Routes
         spotify_resource = api.root.add_resource("spotify")
         spotify_analysis = spotify_resource.add_resource("analysis")
-        spotify_analysis.add_method("GET", lambda_integration)
+        spotify_analysis.add_method("GET", lambda_integration, **auth_props)
 
         repo = codecommit.Repository(
             self, "TastelyticsRepo",

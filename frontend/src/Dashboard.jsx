@@ -1,3 +1,4 @@
+import { apiFetch } from './api';
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, Library, PlayCircle, ArrowLeft, Music, Trash2, ChevronDown, ChevronUp, ExternalLink, Disc3, Disc } from 'lucide-react';
 import { API, getUserId, TrackRow, ReviewModal, PlaylistModal, Spinner } from './components';
@@ -87,9 +88,9 @@ export default function Dashboard() {
 
     const genres = profile.favorite_genres || 'pop';
     Promise.all([
-      fetch(`${API}/feed?genres=${encodeURIComponent(genres)}`).then(r=>r.json()).catch(()=>({})),
-      fetch(`${API}/recommendations?user_id=${uid}&genres=${encodeURIComponent(genres)}&limit=15`).then(r=>r.json()).catch(()=>({})),
-      fetch(`${API}/new-releases?limit=10`).then(r=>r.json()).catch(()=>({}))
+      apiFetch(`/feed?genres=${encodeURIComponent(genres)}`).then(r=>r.json()).catch(()=>({})),
+      apiFetch(`/recommendations?user_id=${uid}&genres=${encodeURIComponent(genres)}&limit=15`).then(r=>r.json()).catch(()=>({})),
+      apiFetch(`/new-releases?limit=10`).then(r=>r.json()).catch(()=>({}))
     ]).then(([feed, recs, releases]) => {
       setFeedArtists(feed.artists?.items || []);
       setRecTracks(recs.tracks || []);
@@ -105,7 +106,7 @@ export default function Dashboard() {
     searchTimer.current = setTimeout(async () => {
       setSearching(true);
       try {
-        const res = await fetch(`${API}/search?q=${encodeURIComponent(q)}&type=artist,track,album&limit=12`);
+        const res = await apiFetch(`/search?q=${encodeURIComponent(q)}&type=artist,track,album&limit=12`);
         setSearchResults(await res.json());
       } catch(e) { console.error(e); }
       setSearching(false);
@@ -379,9 +380,9 @@ function ArtistPage({ artist, onBack, onArtist, onAlbum, onReview, onPlaylist, o
   useEffect(() => {
     setLoading(true);
     Promise.all([
-      fetch(`${API}/artist/${artist.id}/top-tracks`).then(r=>r.json()).catch(()=>({})),
-      fetch(`${API}/artist/${artist.id}/albums`).then(r=>r.json()).catch(()=>({})),
-      fetch(`${API}/artist/${artist.id}/related`).then(r=>r.json()).catch(()=>({}))
+      apiFetch(`/artist/${artist.id}/top-tracks`).then(r=>r.json()).catch(()=>({})),
+      apiFetch(`/artist/${artist.id}/albums`).then(r=>r.json()).catch(()=>({})),
+      apiFetch(`/artist/${artist.id}/related`).then(r=>r.json()).catch(()=>({}))
     ]).then(([detail, alb, rel]) => {
       setTracks(detail.tracks || []);
       setAlbums(alb.items || []);
@@ -471,7 +472,7 @@ function AlbumPage({ album: albumProp, onBack, onArtist, onReview, onPlaylist, o
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${API}/album/${albumProp.id}`).then(r=>r.json()).then(d => {
+    apiFetch(`/album/${albumProp.id}`).then(r=>r.json()).then(d => {
       if (d.album) {
         setAlbum(d.album);
         setTracks((d.album.tracks?.items || []).map(t => ({...t, album: { images: d.album.images, name: d.album.name, id: d.album.id }})));
@@ -560,11 +561,11 @@ function LibraryView() {
   const uid = getUserId();
 
   useEffect(() => {
-    fetch(`${API}/playlists?user_id=${uid}`).then(r=>r.json()).then(d=>{setPlaylists(d.playlists||[]);setLoading(false);}).catch(()=>setLoading(false));
+    apiFetch(`/playlists?user_id=${uid}`).then(r=>r.json()).then(d=>{setPlaylists(d.playlists||[]);setLoading(false);}).catch(()=>setLoading(false));
   }, []);
 
   const deletePlaylist = async (pid) => {
-    await fetch(`${API}/playlists`, {method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:uid,playlist_id:pid})});
+    await apiFetch(`/playlists`, {method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:uid,playlist_id:pid})});
     setPlaylists(playlists.filter(p=>p.PlaylistID!==pid));
   };
 
@@ -631,7 +632,7 @@ function AnalysisView({ onReview, onPlaylist, onArtist }) {
       return;
     }
     setLoading(true);
-    fetch(`${API}/spotify/analysis?token=${token}&time_range=${timeRange}`)
+    apiFetch(`/spotify/analysis?token=${token}&time_range=${timeRange}`)
       .then(r => r.json())
       .then(d => {
         if (d.error) {
@@ -821,7 +822,7 @@ function QuickBurnSection({ onBurn }) {
     timer.current = setTimeout(async () => {
       setLoading(true);
       try {
-        const res = await fetch(`${API}/search?q=${encodeURIComponent(val)}&type=track&limit=6`);
+        const res = await apiFetch(`/search?q=${encodeURIComponent(val)}&type=track&limit=6`);
         const d = await res.json();
         setResults(d.tracks?.items || []);
       } catch(e) { console.error(e); }

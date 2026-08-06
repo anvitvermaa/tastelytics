@@ -179,7 +179,7 @@ def handler(event, context):
             track_id = body.get('track_id')
             rating = body.get('rating')
             review_text = body.get('review_text', '')
-            user_id = body.get('user_id', 'anonymous')
+            user_id = event.get('requestContext', {}).get('authorizer', {}).get('claims', {}).get('sub') or 'anonymous'
             user_name = body.get('user_name', 'Anonymous')
 
             if not track_id or not rating:
@@ -341,7 +341,7 @@ def handler(event, context):
 
         # ─── PLAYLISTS ───
         elif http_method == 'GET' and path == '/playlists':
-            user_id = query_params.get('user_id', '')
+            user_id = event.get('requestContext', {}).get('authorizer', {}).get('claims', {}).get('sub')
             if not user_id:
                 return cors_response(400, {"error": "Missing user_id"})
             response = playlists_table.query(
@@ -351,7 +351,7 @@ def handler(event, context):
 
         elif http_method == 'POST' and path == '/playlists':
             body = json.loads(event.get('body', '{}'))
-            user_id = body.get('user_id')
+            user_id = event.get('requestContext', {}).get('authorizer', {}).get('claims', {}).get('sub')
             playlist_name = body.get('name')
             if not user_id or not playlist_name:
                 return cors_response(400, {"error": "Missing user_id or name"})
@@ -368,7 +368,7 @@ def handler(event, context):
 
         elif http_method == 'PUT' and path == '/playlists':
             body = json.loads(event.get('body', '{}'))
-            user_id = body.get('user_id')
+            user_id = event.get('requestContext', {}).get('authorizer', {}).get('claims', {}).get('sub')
             playlist_id = body.get('playlist_id')
             track = body.get('track')
             if not user_id or not playlist_id or not track:
@@ -382,7 +382,7 @@ def handler(event, context):
 
         elif http_method == 'DELETE' and path == '/playlists':
             body = json.loads(event.get('body', '{}'))
-            user_id = body.get('user_id')
+            user_id = event.get('requestContext', {}).get('authorizer', {}).get('claims', {}).get('sub')
             playlist_id = body.get('playlist_id')
             if not user_id or not playlist_id:
                 return cors_response(400, {"error": "Missing user_id or playlist_id"})
@@ -393,7 +393,7 @@ def handler(event, context):
 
         # ─── PROFILE ───
         elif http_method == 'GET' and path == '/profile':
-            user_id = query_params.get('user_id', '')
+            user_id = event.get('requestContext', {}).get('authorizer', {}).get('claims', {}).get('sub')
             if not user_id:
                 return cors_response(400, {"error": "Missing user_id"})
             users_table = dynamodb.Table(USERS_TABLE_NAME)
@@ -404,7 +404,7 @@ def handler(event, context):
 
         elif http_method == 'POST' and path == '/profile':
             body = json.loads(event.get('body', '{}'))
-            user_id = body.get('user_id')
+            user_id = event.get('requestContext', {}).get('authorizer', {}).get('claims', {}).get('sub')
             profile_data = body.get('profile_data')
             if not user_id or not profile_data:
                 return cors_response(400, {"error": "Missing user_id or profile_data"})

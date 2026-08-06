@@ -1,3 +1,4 @@
+import { apiFetch } from './api';
 import React, { useState, useEffect } from 'react';
 import { Star, X, Plus, Music, PlusCircle, MessageCircle, ExternalLink } from 'lucide-react';
 
@@ -36,7 +37,7 @@ export function ReviewModal({ track, onClose }) {
       const imgUrl = isArtist ? track.images?.[0]?.url : (track.album?.images?.[0]?.url || track.images?.[0]?.url);
       const artName = isArtist ? track.name : (track.artists?.map(a=>a.name).join(', '));
       
-      await fetch(`${API}/reviews`, {
+      await apiFetch(`/reviews`, {
         method: 'POST', headers: {'Content-Type':'application/json'},
         body: JSON.stringify({
           track_id: track.id, rating, review_text: text,
@@ -92,13 +93,13 @@ export function PlaylistModal({ track, onClose }) {
   const uid = getUserId();
 
   useEffect(() => {
-    fetch(`${API}/playlists?user_id=${uid}`).then(r=>r.json()).then(d=>setPlaylists(d.playlists||[])).catch(()=>{});
+    apiFetch(`/playlists?user_id=${uid}`).then(r=>r.json()).then(d=>setPlaylists(d.playlists||[])).catch(()=>{});
   }, []);
 
   const createPlaylist = async () => {
     if (!newName) return;
     setCreating(true);
-    const res = await fetch(`${API}/playlists`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:uid,name:newName})});
+    const res = await apiFetch(`/playlists`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:uid,name:newName})});
     const d = await res.json();
     setPlaylists([...playlists, d.playlist]);
     setNewName('');
@@ -106,7 +107,7 @@ export function PlaylistModal({ track, onClose }) {
   };
 
   const addTrack = async (pl) => {
-    await fetch(`${API}/playlists`, {method:'PUT',headers:{'Content-Type':'application/json'},
+    await apiFetch(`/playlists`, {method:'PUT',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({user_id:uid,playlist_id:pl.PlaylistID,track:{id:track.id,name:track.name,artist:track.artists?.[0]?.name,image:track.album?.images?.[0]?.url}})
     });
     onClose();
@@ -144,7 +145,7 @@ export function ReviewsPanel({ trackId, padding = "pl-16" }) {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
-    fetch(`${API}/reviews/item/${trackId}`).then(r=>r.json()).then(d=>{setReviews(d.reviews||[]);setLoading(false);}).catch(()=>setLoading(false));
+    apiFetch(`/reviews/item/${trackId}`).then(r=>r.json()).then(d=>{setReviews(d.reviews||[]);setLoading(false);}).catch(()=>setLoading(false));
   }, [trackId]);
   if (loading) return <div className={`py-3 ${padding}`}><div className="w-5 h-5 border-4 border-black border-t-brand-500 rounded-full animate-spin"/></div>;
   if (!reviews.length) return <p className={`text-dark-500 font-extrabold uppercase tracking-widest text-xs py-2 ${padding}`}>No reviews yet. Be the first!</p>;
