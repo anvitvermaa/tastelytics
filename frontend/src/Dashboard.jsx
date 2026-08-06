@@ -287,7 +287,7 @@ function HomeView({ feedArtists, recTracks, newReleases, feedLoading, onArtist, 
                 <div onClick={()=>onAlbum(a)}>
                   <img src={a.images?.[0]?.url} className="w-full aspect-square mb-3 object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all border-[3px] border-dark-700" alt=""/>
                   <h3 className="font-extrabold text-black uppercase tracking-tight truncate text-lg">{a.name}</h3>
-                  <p className="text-xs text-[#0000A0] font-bold uppercase tracking-widest truncate">{a.artists?.map(x=>x.name).join(', ')}</p>
+                  <p className="text-xs text-[#0000A0] font-bold uppercase tracking-widest truncate">{(a.artists || []).map(x=>x.name).join(', ')}</p>
                 </div>
                 <button onClick={(e)=>{e.stopPropagation(); onAlbum(a);}} className="mt-2 win95-button w-full py-1 font-bold text-xs uppercase tracking-widest bg-[#f9f586] text-center">[OPEN &amp; BURN TRACKS]</button>
               </div>
@@ -358,7 +358,7 @@ function SearchView({ searchQ, searchResults, searching, searchTab, setSearchTab
                 <div key={a.id} onClick={()=>onAlbum(a)} className="bg-white p-3 border-[4px] border-dark-700 shadow-[inset_2px_2px_0_0_rgba(255,255,255,0.5)] shadow-retro hover:shadow-retro-hover transition-transform cursor-pointer group">
                   <img src={a.images?.[0]?.url} className="w-full aspect-square mb-3 object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all border-[3px] border-dark-700" alt=""/>
                   <h3 className="font-extrabold text-black uppercase tracking-tight truncate text-lg">{a.name}</h3>
-                  <p className="text-xs text-[#0000A0] font-bold uppercase tracking-widest truncate">{a.artists?.map(x=>x.name).join(', ')}</p>
+                  <p className="text-xs text-[#0000A0] font-bold uppercase tracking-widest truncate">{(a.artists || []).map(x=>x.name).join(', ')}</p>
                   <p className="text-xs font-mono text-brand-500 font-bold">{a.release_date?.slice(0,4)}</p>
                 </div>
               ))}
@@ -534,7 +534,7 @@ function AlbumPage({ album: albumProp, onBack, onArtist, onReview, onPlaylist, o
                     <span className="text-black font-bold text-sm w-6 text-right shrink-0">{i+1}</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-black font-bold text-sm truncate">{t.name}</p>
-                      <p className="text-dark-700 text-xs truncate">{t.artists?.map(a=>a.name).join(', ')}</p>
+                      <p className="text-dark-700 text-xs truncate">{(t.artists || []).map(a=>a.name).join(', ')}</p>
                     </div>
                     <span className="text-black font-mono text-sm shrink-0">{durMin}:{durSec}</span>
                     <div className="flex gap-2 flex-wrap sm:flex-nowrap">
@@ -861,7 +861,7 @@ function QuickBurnSection({ onBurn }) {
                   <img src={img} className="w-10 h-10 object-cover border-2 border-dark-700 shrink-0" alt=""/>
                   <div className="flex-1 min-w-0">
                     <p className="text-black font-extrabold text-xs uppercase truncate">{t.name}</p>
-                    <p className="text-dark-600 font-bold text-xs truncate">{t.artists?.map(a=>a.name).join(', ')}</p>
+                    <p className="text-dark-600 font-bold text-xs truncate">{(t.artists || []).map(a=>a.name).join(', ')}</p>
                   </div>
                   <button
                     onClick={() => burn(t)}
