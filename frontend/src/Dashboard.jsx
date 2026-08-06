@@ -1,7 +1,7 @@
 import { apiFetch } from './api';
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, Library, PlayCircle, ArrowLeft, Music, Trash2, ChevronDown, ChevronUp, ExternalLink, Disc3, Disc } from 'lucide-react';
-import { API, getUserId, TrackRow, ReviewModal, PlaylistModal, Spinner } from './components';
+import { API, getUserId, TrackRow, ReviewModal, PlaylistModal, Spinner, ReviewsPanel } from './components';
 
 export default function Dashboard() {
   const [view, setView] = useState('home');
