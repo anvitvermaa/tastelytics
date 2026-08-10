@@ -1,10 +1,12 @@
 import { apiFetch } from './api';
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Library, PlayCircle, ArrowLeft, Music, Trash2, ChevronDown, ChevronUp, ExternalLink, Disc3, Disc } from 'lucide-react';
-import { API, getUserId, TrackRow, ReviewModal, PlaylistModal, Spinner, ReviewsPanel } from './components';
+import { PlayCircle, ArrowLeft, Music, Trash2, ChevronDown, ChevronUp, ExternalLink, Disc3 } from 'lucide-react';
+import { getUserId, TrackRow, ReviewModal, PlaylistModal, Spinner, ReviewsPanel } from './components';
 
 export default function Dashboard() {
-  const [viewState, _setView] = useState('home');
+  const [viewState, _setView] = useState(() => {
+    return new URLSearchParams(window.location.search).get('view') || 'home';
+  });
   const view = viewState;
   
   const setView = React.useCallback((v) => {
@@ -27,7 +29,6 @@ export default function Dashboard() {
     if (!window.history.state) {
       const initialView = new URLSearchParams(window.location.search).get('view') || 'home';
       window.history.replaceState({ view: initialView }, '', `?view=${initialView}`);
-      _setView(initialView);
     }
     return () => window.removeEventListener('popstate', onPopState);
   }, []);
@@ -42,7 +43,9 @@ export default function Dashboard() {
   const [feedArtists, setFeedArtists] = useState([]);
   const [recTracks, setRecTracks] = useState([]);
   const [newReleases, setNewReleases] = useState([]);
-  const [feedLoading, setFeedLoading] = useState(true);
+  const [feedLoading, setFeedLoading] = useState(() => {
+    return new URLSearchParams(window.location.search).has('code');
+  });
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [profileAvatar, setProfileAvatar] = useState(localStorage.getItem('tastelytics_profile_avatar') || null);
   const [burnQueue, setBurnQueue] = useState([]);
@@ -50,9 +53,9 @@ export default function Dashboard() {
   const searchTimer = useRef(null);
   const uid = getUserId();
 
-  const profile = JSON.parse(localStorage.getItem('tastelytics_profile') || '{}');
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  const rawProfile = JSON.parse(localStorage.getItem('tastelytics_profile') || '{}');
+  const sanitizeStr = (s) => typeof s === 'string' ? s.replace(/[<>"']/g, '') : s;
+  const profile = { ...rawProfile, name: sanitizeStr(rawProfile.name), favorite_genres: sanitizeStr(rawProfile.favorite_genres) };
 
   useEffect(() => {
     // Check if new visitor or returning visitor
@@ -79,7 +82,6 @@ export default function Dashboard() {
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
     if (code) {
-      setFeedLoading(true);
       const verifier = localStorage.getItem('spotify_pkce_verifier');
       const clientId = '8acd7efe5e9749dc9ad9a39ba4faa007';
       const redirectUri = window.location.origin + '/';
@@ -282,7 +284,9 @@ export default function Dashboard() {
 
 /* ─── HOME ─── */
 function HomeView({ feedArtists, recTracks, newReleases, feedLoading, onArtist, onAlbum, onReview, onPlaylist, onBurn }) {
-  const profile = JSON.parse(localStorage.getItem('tastelytics_profile') || '{}');
+  const rawProfile = JSON.parse(localStorage.getItem('tastelytics_profile') || '{}');
+  const sanitizeStr = (s) => typeof s === 'string' ? s.replace(/[<>"']/g, '') : s;
+  const profile = { ...rawProfile, name: sanitizeStr(rawProfile.name), favorite_genres: sanitizeStr(rawProfile.favorite_genres) };
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
 
@@ -404,7 +408,6 @@ function ArtistPage({ artist, onBack, onArtist, onAlbum, onReview, onPlaylist, o
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(true);
     Promise.all([
       apiFetch(`/artist/${artist.id}/top-tracks`).then(r=>r.json()).catch(()=>({})),
       apiFetch(`/artist/${artist.id}/albums`).then(r=>r.json()).catch(()=>({})),
@@ -492,7 +495,7 @@ function ArtistPage({ artist, onBack, onArtist, onAlbum, onReview, onPlaylist, o
 }
 
 /* ─── ALBUM PAGE ─── */
-function AlbumPage({ album: albumProp, onBack, onArtist, onReview, onPlaylist, onBurn }) {
+function AlbumPage({ album: albumProp, onBack, onArtist, onReview, onBurn }) {
   const [album, setAlbum] = useState(albumProp);
   const [tracks, setTracks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -654,10 +657,8 @@ function AnalysisView({ onReview, onPlaylist, onArtist }) {
   useEffect(() => {
     const token = localStorage.getItem('tastelytics_spotify_token');
     if (!token) {
-      setLoading(false);
       return;
     }
-    setLoading(true);
     apiFetch(`/spotify/analysis?token=${token}&time_range=${timeRange}`)
       .then(r => r.json())
       .then(d => {
@@ -751,7 +752,7 @@ function AnalysisView({ onReview, onPlaylist, onArtist }) {
         <div className="win95-window">
           <div className="win95-titlebar"><span>TOP_TRACKS.LST</span></div>
           <div className="p-4 bg-dark-800 space-y-2">
-            {data.top_tracks?.length > 0 ? data.top_tracks.slice(0, 10).map((t, i) => (
+            {data.top_tracks?.length > 0 ? data.top_tracks.slice(0, 10).map((t) => (
                <TrackRow key={t.id} track={t} onReview={onReview} onPlaylist={onPlaylist} onArtist={onArtist} />
             )) : (
                <span className="font-mono font-bold text-sm text-black bg-white px-2 py-1 border-[2px] border-dark-700 uppercase inline-block">NO TRACK DATA FOUND FOR THIS TIME RANGE.</span>

@@ -13,15 +13,26 @@ from boto3.dynamodb.conditions import Key
 
 dynamodb = boto3.resource('dynamodb')
 TABLE_NAME = os.environ.get("DYNAMODB_TABLE", "TastelyticsReviews")
-PLAYLISTS_TABLE_NAME = os.environ.get("PLAYLISTS_TABLE", "TastelyticsPlaylists")
+PLAYLISTS_TABLE_NAME = os.environ.get(
+    "PLAYLISTS_TABLE", "TastelyticsPlaylists")
 USERS_TABLE_NAME = os.environ.get("USERS_TABLE", "TastelyticsUsersTable")
 SPOTIFY_CLIENT_ID = os.environ.get("SPOTIFY_CLIENT_ID")
 SPOTIFY_CLIENT_SECRET = os.environ.get("SPOTIFY_CLIENT_SECRET")
 GMAIL_EMAIL = os.environ.get("GMAIL_EMAIL")
 GMAIL_APP_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD")
+ADMIN_SECRET = os.environ.get("ADMIN_SECRET", "tastelytics-admin-2025")
+
+# V2 Fix: Allowlist for valid Spotify redirect URIs
+ALLOWED_REDIRECT_URIS = [
+    "http://localhost:5173/",
+    "http://localhost:5174/",
+    "https://main.d3m03t1ivkmhes.amplifyapp.com/",
+    "https://tastelytics.app/",
+]
 
 # Cache token across invocations
 _spotify_token_cache = {"token": None, "expires_at": 0}
+
 
 def send_welcome_email(user_email, user_name):
     if not GMAIL_EMAIL or not GMAIL_APP_PASSWORD:
@@ -65,47 +76,63 @@ def send_welcome_email(user_email, user_name):
 
 
 def get_spotify_token():
-    global _spotify_token_cache
     if _spotify_token_cache["token"] and time.time() < _spotify_token_cache["expires_at"]:
         return _spotify_token_cache["token"]
     if not SPOTIFY_CLIENT_ID or not SPOTIFY_CLIENT_SECRET:
         raise Exception("Missing Spotify Credentials")
     auth_str = f"{SPOTIFY_CLIENT_ID}:{SPOTIFY_CLIENT_SECRET}"
     b64_auth_str = base64.b64encode(auth_str.encode()).decode()
-    headers = {"Authorization": f"Basic {b64_auth_str}", "Content-Type": "application/x-www-form-urlencoded"}
+    headers = {"Authorization": f"Basic {b64_auth_str}",
+               "Content-Type": "application/x-www-form-urlencoded"}
     data = {"grant_type": "client_credentials"}
-    response = requests.post("https://accounts.spotify.com/api/token", headers=headers, data=data)
+    response = requests.post(
+        "https://accounts.spotify.com/api/token", headers=headers, data=data)
     response.raise_for_status()
     resp = response.json()
     _spotify_token_cache["token"] = resp["access_token"]
-    _spotify_token_cache["expires_at"] = time.time() + resp.get("expires_in", 3600) - 60
+    _spotify_token_cache["expires_at"] = time.time() + \
+        resp.get("expires_in", 3600) - 60
     return resp["access_token"]
+
 
 def spotify_get(endpoint, params=None):
     token = get_spotify_token()
     headers = {"Authorization": f"Bearer {token}"}
-    response = requests.get(f"https://api.spotify.com/v1{endpoint}", headers=headers, params=params)
+    response = requests.get(
+        f"https://api.spotify.com/v1{endpoint}", headers=headers, params=params)
     response.raise_for_status()
     return response.json()
 
+
+_current_origin = "*"
 def cors_response(status_code, body):
+    allow_origin = _current_origin if _current_origin in [
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "https://main.d3m03t1ivkmhes.amplifyapp.com",
+        "https://tastelytics.app",
+        "https://d36b12rj7f0r2u.cloudfront.net"
+    ] else "https://tastelytics.app"
     return {
         "statusCode": status_code,
         "headers": {
-            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Origin": allow_origin,
             "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type,Authorization"
+            "Access-Control-Allow-Headers": "Content-Type,Authorization,X-Admin-Secret"
         },
         "body": json.dumps(body, default=str)
     }
 
+
 def get_spotify_artists_by_genre(genres):
     try:
-        genre_list = [g.strip().lower() for g in genres.split(',') if g.strip()]
+        genre_list = [g.strip().lower()
+                      for g in genres.split(',') if g.strip()]
         all_artists = []
         seen_ids = set()
         for genre in genre_list:
-            data = spotify_get("/search", {"q": f'genre:"{genre}"', "type": "artist", "limit": 10})
+            data = spotify_get(
+                "/search", {"q": f'genre:"{genre}"', "type": "artist", "limit": 10})
             for artist in data.get("artists", {}).get("items", []):
                 if artist["id"] not in seen_ids:
                     seen_ids.add(artist["id"])
@@ -115,6 +142,7 @@ def get_spotify_artists_by_genre(genres):
     except Exception as e:
         print(f"Spotify Artist Search Error: {e}")
         return {"artists": {"items": []}}
+
 
 def get_user_recommendation_seeds(table, playlists_table, user_id):
     """Build recommendation seeds from user's reviews and playlists."""
@@ -129,7 +157,8 @@ def get_user_recommendation_seeds(table, playlists_table, user_id):
             ScanIndexForward=False,
             Limit=20
         )
-        reviews = sorted(response.get('Items', []), key=lambda r: float(r.get('Rating', 0)), reverse=True)
+        reviews = sorted(response.get('Items', []), key=lambda r: float(
+            r.get('Rating', 0)), reverse=True)
         for review in reviews[:3]:
             if review.get('TrackID'):
                 seed_tracks.append(review['TrackID'])
@@ -161,9 +190,16 @@ def get_user_recommendation_seeds(table, playlists_table, user_id):
 
 
 def handler(event, context):
+    global _current_origin
+    _current_origin = event.get('headers', {}).get('origin', '*')
+    
     http_method = event.get('httpMethod', 'GET')
     path = event.get('path', '')
     query_params = event.get('queryStringParameters') or {}
+    
+    # Get user_id from token claims (will be None if unauthenticated)
+    auth_user_id = event.get('requestContext', {}).get(
+        'authorizer', {}).get('claims', {}).get('sub')
 
     # Handle CORS preflight
     if http_method == 'OPTIONS':
@@ -175,11 +211,13 @@ def handler(event, context):
     try:
         # ─── REVIEWS ───
         if http_method == 'POST' and path == '/reviews':
+            if not auth_user_id:
+                return cors_response(401, {"error": "Unauthorized"})
             body = json.loads(event.get('body', '{}'))
             track_id = body.get('track_id')
             rating = body.get('rating')
             review_text = body.get('review_text', '')
-            user_id = event.get('requestContext', {}).get('authorizer', {}).get('claims', {}).get('sub') or 'anonymous'
+            user_id = auth_user_id
             user_name = body.get('user_name', 'Anonymous')
 
             if not track_id or not rating:
@@ -223,7 +261,8 @@ def handler(event, context):
             q = query_params.get('q', '')
             search_type = query_params.get('type', 'artist,track,album')
             limit = int(query_params.get('limit', '10'))
-            if limit > 10: limit = 10
+            if limit > 10:
+                limit = 10
             if not q:
                 return cors_response(400, {"error": "Missing query"})
 
@@ -231,7 +270,8 @@ def handler(event, context):
             types = [t.strip() for t in search_type.split(',')]
             for t in types:
                 try:
-                    r = spotify_get("/search", {"q": q, "type": t, "limit": limit, "market": "US"})
+                    r = spotify_get(
+                        "/search", {"q": q, "type": t, "limit": limit, "market": "US"})
                     key = t + "s"  # artist -> artists, track -> tracks, album -> albums
                     if key in r:
                         result[key] = r[key]
@@ -242,24 +282,30 @@ def handler(event, context):
 
         # ─── RECOMMENDATIONS ───
         elif http_method == 'GET' and path == '/recommendations':
-            user_id = query_params.get('user_id', '')
+            # V3 Fix: Use JWT sub claim instead of user-controlled query param
+            jwt_user_id = event.get('requestContext', {}).get(
+                'authorizer', {}).get('claims', {}).get('sub', '')
+            user_id = jwt_user_id  # Only use the authenticated user's own ID
             genres = query_params.get('genres', '')
-            limit = int(query_params.get('limit', '20'))
+            limit = min(int(query_params.get('limit', '20')), 50)  # Cap at 50
 
             params = {"limit": limit, "market": "US"}
 
             if user_id:
-                seed_tracks, seed_artists = get_user_recommendation_seeds(table, playlists_table, user_id)
+                seed_tracks, seed_artists = get_user_recommendation_seeds(
+                    table, playlists_table, user_id)
                 if seed_tracks:
                     params["seed_tracks"] = ",".join(seed_tracks[:5])
                 elif seed_artists:
                     params["seed_artists"] = ",".join(seed_artists[:5])
                 elif genres:
-                    params["seed_genres"] = ",".join([g.strip().lower() for g in genres.split(',')][:5])
+                    params["seed_genres"] = ",".join(
+                        [g.strip().lower() for g in genres.split(',')][:5])
                 else:
                     params["seed_genres"] = "pop,hip-hop,electronic"
             elif genres:
-                params["seed_genres"] = ",".join([g.strip().lower() for g in genres.split(',')][:5])
+                params["seed_genres"] = ",".join(
+                    [g.strip().lower() for g in genres.split(',')][:5])
             else:
                 params["seed_genres"] = "pop,hip-hop,electronic"
 
@@ -270,23 +316,26 @@ def handler(event, context):
                 print(f"Recommendations error: {e}")
                 # Fallback: use search-based recommendations
                 fallback_genre = genres.split(',')[0] if genres else 'pop'
-                data = spotify_get("/search", {"q": fallback_genre, "type": "track", "limit": limit, "market": "US"})
+                data = spotify_get(
+                    "/search", {"q": fallback_genre, "type": "track", "limit": limit, "market": "US"})
                 return cors_response(200, {"tracks": data.get("tracks", {}).get("items", []), "seeds": [], "fallback": True})
 
         # ─── ARTIST DETAILS ───
         elif http_method == 'GET' and '/artist/' in path and '/top-tracks' in path:
             artist_id = path.split('/artist/')[-1].split('/top-tracks')[0]
             try:
-                data = spotify_get(f"/artists/{artist_id}/top-tracks", {"market": "US"})
-            except:
+                data = spotify_get(
+                    f"/artists/{artist_id}/top-tracks", {"market": "US"})
+            except Exception:
                 data = {"tracks": []}
             return cors_response(200, data)
 
         elif http_method == 'GET' and '/artist/' in path and '/albums' in path:
             artist_id = path.split('/artist/')[-1].split('/albums')[0]
             try:
-                data = spotify_get(f"/artists/{artist_id}/albums", {"limit": 20, "include_groups": "album,single", "market": "US"})
-            except:
+                data = spotify_get(
+                    f"/artists/{artist_id}/albums", {"limit": 20, "include_groups": "album,single", "market": "US"})
+            except Exception:
                 data = {"items": []}
             return cors_response(200, data)
 
@@ -303,9 +352,10 @@ def handler(event, context):
             artist_id = path.split('/artist/')[-1]
             artist = spotify_get(f"/artists/{artist_id}")
             try:
-                top_data = spotify_get(f"/artists/{artist_id}/top-tracks", {"market": "US"})
+                top_data = spotify_get(
+                    f"/artists/{artist_id}/top-tracks", {"market": "US"})
                 tracks = top_data.get("tracks", [])
-            except:
+            except Exception:
                 tracks = []
             return cors_response(200, {"artist": artist, "top_tracks": tracks})
 
@@ -325,18 +375,23 @@ def handler(event, context):
             genres = query_params.get('genres', '')
             try:
                 if genres:
-                    genre_list = [g.strip().lower() for g in genres.split(',') if g.strip()]
+                    genre_list = [g.strip().lower()
+                                  for g in genres.split(',') if g.strip()]
                     query = f'tag:new genre:"{genre_list[0]}"'
-                    data = spotify_get("/search", {"q": query, "type": "album", "limit": limit, "market": "US"})
+                    data = spotify_get(
+                        "/search", {"q": query, "type": "album", "limit": limit, "market": "US"})
                     # Sometimes Spotify search with tag:new genre returns empty, fallback to global new releases
                     if not data.get("albums", {}).get("items"):
-                        data = spotify_get("/browse/new-releases", {"limit": limit, "country": "US"})
+                        data = spotify_get(
+                            "/browse/new-releases", {"limit": limit, "country": "US"})
                 else:
-                    data = spotify_get("/browse/new-releases", {"limit": limit, "country": "US"})
+                    data = spotify_get("/browse/new-releases",
+                                       {"limit": limit, "country": "US"})
                 return cors_response(200, {"albums": data.get("albums", {})})
             except Exception as e:
                 print(f"New releases error: {e}")
-                data = spotify_get("/search", {"q": "tag:new", "type": "album", "limit": limit, "market": "US"})
+                data = spotify_get(
+                    "/search", {"q": "tag:new", "type": "album", "limit": limit, "market": "US"})
                 return cors_response(200, {"albums": data.get("albums", {}), "fallback": True})
 
         # ─── ONBOARDING ───
@@ -349,20 +404,20 @@ def handler(event, context):
 
         # ─── PLAYLISTS ───
         elif http_method == 'GET' and path == '/playlists':
-            user_id = event.get('requestContext', {}).get('authorizer', {}).get('claims', {}).get('sub')
-            if not user_id:
-                return cors_response(400, {"error": "Missing user_id"})
+            if not auth_user_id:
+                return cors_response(401, {"error": "Unauthorized"})
             response = playlists_table.query(
-                KeyConditionExpression=Key('UserID').eq(user_id)
+                KeyConditionExpression=Key('UserID').eq(auth_user_id)
             )
             return cors_response(200, {"playlists": response.get('Items', [])})
 
         elif http_method == 'POST' and path == '/playlists':
+            if not auth_user_id:
+                return cors_response(401, {"error": "Unauthorized"})
             body = json.loads(event.get('body', '{}'))
-            user_id = event.get('requestContext', {}).get('authorizer', {}).get('claims', {}).get('sub')
             playlist_name = body.get('name')
-            if not user_id or not playlist_name:
-                return cors_response(400, {"error": "Missing user_id or name"})
+            if not playlist_name:
+                return cors_response(400, {"error": "Missing name"})
             playlist_id = str(uuid.uuid4())
             item = {
                 'UserID': user_id,
@@ -375,50 +430,52 @@ def handler(event, context):
             return cors_response(201, {"message": "Playlist created", "playlist": item})
 
         elif http_method == 'PUT' and path == '/playlists':
+            if not auth_user_id:
+                return cors_response(401, {"error": "Unauthorized"})
             body = json.loads(event.get('body', '{}'))
-            user_id = event.get('requestContext', {}).get('authorizer', {}).get('claims', {}).get('sub')
             playlist_id = body.get('playlist_id')
             track = body.get('track')
-            if not user_id or not playlist_id or not track:
+            if not playlist_id or not track:
                 return cors_response(400, {"error": "Missing fields"})
             playlists_table.update_item(
-                Key={'UserID': user_id, 'PlaylistID': playlist_id},
+                Key={'UserID': auth_user_id, 'PlaylistID': playlist_id},
                 UpdateExpression='SET Tracks = list_append(if_not_exists(Tracks, :empty), :track)',
                 ExpressionAttributeValues={':track': [track], ':empty': []}
             )
             return cors_response(200, {"message": "Track added"})
 
         elif http_method == 'DELETE' and path == '/playlists':
+            if not auth_user_id:
+                return cors_response(401, {"error": "Unauthorized"})
             body = json.loads(event.get('body', '{}'))
-            user_id = event.get('requestContext', {}).get('authorizer', {}).get('claims', {}).get('sub')
             playlist_id = body.get('playlist_id')
-            if not user_id or not playlist_id:
-                return cors_response(400, {"error": "Missing user_id or playlist_id"})
+            if not playlist_id:
+                return cors_response(400, {"error": "Missing playlist_id"})
             playlists_table.delete_item(
-                Key={'UserID': user_id, 'PlaylistID': playlist_id}
+                Key={'UserID': auth_user_id, 'PlaylistID': playlist_id}
             )
             return cors_response(200, {"message": "Playlist deleted"})
 
         # ─── PROFILE ───
         elif http_method == 'GET' and path == '/profile':
-            user_id = event.get('requestContext', {}).get('authorizer', {}).get('claims', {}).get('sub')
-            if not user_id:
-                return cors_response(400, {"error": "Missing user_id"})
+            if not auth_user_id:
+                return cors_response(401, {"error": "Unauthorized"})
             users_table = dynamodb.Table(USERS_TABLE_NAME)
-            response = users_table.get_item(Key={"UserID": user_id})
+            response = users_table.get_item(Key={"UserID": auth_user_id})
             if 'Item' in response and response['Item'].get('ProfileData'):
                 return cors_response(200, {"profile": response['Item']['ProfileData']})
             return cors_response(404, {"error": "Profile not found"})
 
         elif http_method == 'POST' and path == '/profile':
+            if not auth_user_id:
+                return cors_response(401, {"error": "Unauthorized"})
             body = json.loads(event.get('body', '{}'))
-            user_id = event.get('requestContext', {}).get('authorizer', {}).get('claims', {}).get('sub')
             profile_data = body.get('profile_data')
-            if not user_id or not profile_data:
-                return cors_response(400, {"error": "Missing user_id or profile_data"})
+            if not profile_data:
+                return cors_response(400, {"error": "Missing profile_data"})
             users_table = dynamodb.Table(USERS_TABLE_NAME)
             users_table.update_item(
-                Key={'UserID': user_id},
+                Key={'UserID': auth_user_id},
                 UpdateExpression='SET ProfileData = :pd, UpdatedAt = :ua',
                 ExpressionAttributeValues={
                     ':pd': profile_data,
@@ -429,6 +486,8 @@ def handler(event, context):
 
         # ─── USERS ───
         elif http_method == 'GET' and path == '/users/count':
+            if not auth_user_id:
+                return cors_response(401, {"error": "Unauthorized"})
             users_table = dynamodb.Table(USERS_TABLE_NAME)
             try:
                 # Scan to count total users
@@ -438,6 +497,34 @@ def handler(event, context):
             except Exception as e:
                 return cors_response(500, {"error": str(e)})
 
+        # ─── ADMIN PANEL ───
+        elif http_method == 'GET' and path == '/admin/users':
+            # Gate behind a secret header
+            request_headers = event.get('headers') or {}
+            admin_secret = request_headers.get('X-Admin-Secret') or request_headers.get('x-admin-secret', '')
+            if admin_secret != ADMIN_SECRET:
+                return cors_response(403, {"error": "Forbidden"})
+            users_table = dynamodb.Table(USERS_TABLE_NAME)
+            try:
+                # Paginate through all users
+                all_users = []
+                scan_kwargs = {
+                    'ProjectionExpression': 'UserID, Email, DisplayName, JoinedAt, ProfileData'
+                }
+                while True:
+                    resp = users_table.scan(**scan_kwargs)
+                    all_users.extend(resp.get('Items', []))
+                    last_key = resp.get('LastEvaluatedKey')
+                    if not last_key:
+                        break
+                    scan_kwargs['ExclusiveStartKey'] = last_key
+                # Sort newest first
+                all_users.sort(key=lambda u: int(u.get('JoinedAt', 0) or 0), reverse=True)
+                return cors_response(200, {"users": all_users, "count": len(all_users)})
+            except Exception as e:
+                print(f"Admin users error: {e}")
+                return cors_response(500, {"error": "Failed to fetch users"})
+
         # ─── SPOTIFY OAUTH & TASTE ANALYSIS ───
         elif http_method == 'POST' and path == '/auth/spotify':
             body = json.loads(event.get('body', '{}'))
@@ -445,33 +532,43 @@ def handler(event, context):
             redirect_uri = body.get('redirect_uri')
             if not code or not redirect_uri:
                 return cors_response(400, {"error": "Missing code or redirect_uri"})
-            
+            # V2 Fix: Validate redirect_uri against allowlist
+            if redirect_uri not in ALLOWED_REDIRECT_URIS:
+                print(f"SECURITY: Rejected redirect_uri: {redirect_uri}")
+                return cors_response(400, {"error": "Invalid redirect_uri"})
+
             auth_str = f"{SPOTIFY_CLIENT_ID}:{SPOTIFY_CLIENT_SECRET}"
             b64_auth_str = base64.b64encode(auth_str.encode()).decode()
-            headers = {"Authorization": f"Basic {b64_auth_str}", "Content-Type": "application/x-www-form-urlencoded"}
-            data = {"grant_type": "authorization_code", "code": code, "redirect_uri": redirect_uri}
-            response = requests.post("https://accounts.spotify.com/api/token", headers=headers, data=data)
+            headers = {"Authorization": f"Basic {b64_auth_str}",
+                       "Content-Type": "application/x-www-form-urlencoded"}
+            data = {"grant_type": "authorization_code",
+                    "code": code, "redirect_uri": redirect_uri}
+            response = requests.post(
+                "https://accounts.spotify.com/api/token", headers=headers, data=data)
             if response.status_code != 200:
                 print("Spotify Auth Error:", response.text)
                 return cors_response(response.status_code, {"error": "Failed to exchange token"})
-                
+
             resp_data = response.json()
             access_token = resp_data.get("access_token")
-            
+
             if access_token:
                 try:
                     # Fetch user profile to get email
                     headers_api = {"Authorization": f"Bearer {access_token}"}
-                    profile_resp = requests.get("https://api.spotify.com/v1/me", headers=headers_api)
+                    profile_resp = requests.get(
+                        "https://api.spotify.com/v1/me", headers=headers_api)
                     if profile_resp.status_code == 200:
                         profile = profile_resp.json()
                         spotify_id = profile.get("id")
                         email = profile.get("email")
-                        display_name = profile.get("display_name") or "Music Lover"
-                        
+                        display_name = profile.get(
+                            "display_name") or "Music Lover"
+
                         if spotify_id and email:
                             users_table = dynamodb.Table(USERS_TABLE_NAME)
-                            user_record = users_table.get_item(Key={"UserID": spotify_id}).get("Item")
+                            user_record = users_table.get_item(
+                                Key={"UserID": spotify_id}).get("Item")
                             if not user_record:
                                 # New user, send email
                                 send_welcome_email(email, display_name)
@@ -492,25 +589,29 @@ def handler(event, context):
             if not token:
                 return cors_response(400, {"error": "Missing Spotify token"})
             headers = {"Authorization": f"Bearer {token}"}
-            
+
             # Fetch Top Artists
-            artists_resp = requests.get(f"https://api.spotify.com/v1/me/top/artists?time_range={time_range}&limit=20", headers=headers)
+            artists_resp = requests.get(
+                f"https://api.spotify.com/v1/me/top/artists?time_range={time_range}&limit=20", headers=headers)
             if artists_resp.status_code != 200:
                 print("ARTIST FETCH ERROR:", artists_resp.text)
                 return cors_response(artists_resp.status_code, {"error": "Failed to fetch artists"})
             top_artists = artists_resp.json().get("items", [])
-            print(f"FETCHED {len(top_artists)} ARTISTS FOR TIME RANGE {time_range}")
-            
+            print(
+                f"FETCHED {len(top_artists)} ARTISTS FOR TIME RANGE {time_range}")
+
             # Fetch Top Tracks
-            tracks_resp = requests.get(f"https://api.spotify.com/v1/me/top/tracks?time_range={time_range}&limit=20", headers=headers)
-            top_tracks = tracks_resp.json().get("items", []) if tracks_resp.status_code == 200 else []
-            
+            tracks_resp = requests.get(
+                f"https://api.spotify.com/v1/me/top/tracks?time_range={time_range}&limit=20", headers=headers)
+            top_tracks = tracks_resp.json().get(
+                "items", []) if tracks_resp.status_code == 200 else []
+
             # Aggregate Genres
             genre_counts = {}
             for artist in top_artists:
                 for genre in artist.get("genres", []):
                     genre_counts[genre] = genre_counts.get(genre, 0) + 1
-            
+
             # Fallback: if no genres found, try to extract them from the artists of top_tracks
             if not genre_counts and top_tracks:
                 track_artist_ids = set()
@@ -518,20 +619,24 @@ def handler(event, context):
                     for a in track.get("artists", []):
                         if a.get("id"):
                             track_artist_ids.add(a.get("id"))
-                
-                track_artist_ids = list(track_artist_ids)[:50] # Spotify API limit is 50 for /artists
+
+                # Spotify API limit is 50 for /artists
+                track_artist_ids = list(track_artist_ids)[:50]
                 if track_artist_ids:
                     artists_url = f"https://api.spotify.com/v1/artists?ids={','.join(track_artist_ids)}"
-                    artists_info_resp = requests.get(artists_url, headers=headers)
+                    artists_info_resp = requests.get(
+                        artists_url, headers=headers)
                     if artists_info_resp.status_code == 200:
                         for artist in artists_info_resp.json().get("artists", []):
                             for genre in artist.get("genres", []):
-                                genre_counts[genre] = genre_counts.get(genre, 0) + 1
+                                genre_counts[genre] = genre_counts.get(
+                                    genre, 0) + 1
 
-            sorted_genres = sorted(genre_counts.items(), key=lambda x: x[1], reverse=True)
+            sorted_genres = sorted(genre_counts.items(),
+                                   key=lambda x: x[1], reverse=True)
             top_genres = [g[0] for g in sorted_genres[:10]]
             print(f"CALCULATED {len(top_genres)} GENRES:", top_genres)
-            
+
             return cors_response(200, {
                 "top_artists": top_artists,
                 "top_tracks": top_tracks,
@@ -540,6 +645,8 @@ def handler(event, context):
 
         # ─── HOME FEED ───
         elif http_method == 'GET' and path == '/feed':
+            if not auth_user_id:
+                return cors_response(401, {"error": "Unauthorized"})
             genres = query_params.get('genres', 'pop')
             results = get_spotify_artists_by_genre(genres)
             return cors_response(200, results)
@@ -547,7 +654,8 @@ def handler(event, context):
         return cors_response(404, {"error": "Route not found"})
 
     except Exception as e:
-        print(f"Handler error: {e}")
+        # V5 Fix: Never expose internal exception details to clients
         import traceback
+        print(f"Handler error: {e}")
         traceback.print_exc()
-        return cors_response(500, {"error": str(e)})
+        return cors_response(500, {"error": "An internal server error occurred. Please try again."})

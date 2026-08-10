@@ -1,12 +1,12 @@
 import { apiFetch } from './api';
-import React, { useState, useEffect, createContext, useContext } from 'react';
+import { useState, useEffect, createContext, useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, Navigate } from 'react-router-dom';
-import { signInWithRedirect, getCurrentUser, fetchUserAttributes } from 'aws-amplify/auth';
+import { signInWithRedirect, getCurrentUser } from 'aws-amplify/auth';
 import { Hub } from 'aws-amplify/utils';
 import { PlayCircle, ChevronRight, CheckCircle2 } from 'lucide-react';
 import Dashboard from './Dashboard';
+import AdminPanel from './AdminPanel';
 
-const API_URL = "https://ny8zhk2zga.execute-api.us-east-1.amazonaws.com/prod";
 const POPULAR_GENRES = ["Pop", "Electronic", "Hip-Hop", "Rock", "R&B", "Jazz", "Classical", "Country", "Indie", "K-Pop", "Metal", "Latin"];
 
 /* ─── Auth Context ─── */
@@ -15,20 +15,6 @@ const AuthContext = createContext(null);
 function AuthProvider({ children }) {
   const [authStatus, setAuthStatus] = useState('loading');
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => checkUser(), 500);
-    const unsubscribe = Hub.listen('auth', ({ payload }) => {
-      if (payload.event === 'signedIn' || payload.event === 'signInWithRedirect') {
-        checkUser();
-      } else if (payload.event === 'signedOut') {
-        setAuthStatus('unauthenticated');
-      } else if (payload.event === 'signInWithRedirect_failure') {
-        setAuthStatus('unauthenticated');
-      }
-    });
-    return () => { clearTimeout(timer); unsubscribe(); };
-  }, []);
 
   async function checkUser() {
     try {
@@ -58,6 +44,20 @@ function AuthProvider({ children }) {
       setAuthStatus('unauthenticated');
     }
   }
+
+  useEffect(() => {
+    const timer = setTimeout(() => checkUser(), 500);
+    const unsubscribe = Hub.listen('auth', ({ payload }) => {
+      if (payload.event === 'signedIn' || payload.event === 'signInWithRedirect') {
+        checkUser();
+      } else if (payload.event === 'signedOut') {
+        setAuthStatus('unauthenticated');
+      } else if (payload.event === 'signInWithRedirect_failure') {
+        setAuthStatus('unauthenticated');
+      }
+    });
+    return () => { clearTimeout(timer); unsubscribe(); };
+  }, []);
 
   function completeOnboarding() {
     localStorage.setItem('tastelytics_onboarding_done', 'true');
@@ -334,6 +334,7 @@ function AppRoutes() {
       <Route path="/" element={authStatus === 'authenticated' ? <Navigate to={(needsOnboarding ? '/onboarding' : '/dashboard') + window.location.search} replace /> : <Login />} />
       <Route path="/onboarding" element={authStatus === 'authenticated' ? (needsOnboarding ? <Onboarding /> : <Navigate to={"/dashboard" + window.location.search} replace />) : <Navigate to="/" replace />} />
       <Route path="/dashboard" element={authStatus === 'authenticated' ? (needsOnboarding ? <Navigate to={"/onboarding" + window.location.search} replace /> : <Dashboard />) : <Navigate to="/" replace />} />
+      <Route path="/admin" element={authStatus === 'authenticated' ? <AdminPanel /> : <Navigate to="/" replace />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
