@@ -8,16 +8,10 @@ export default function AdminPanel() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   
-  const ADMIN_SECRET = 'tastelytics-admin-2025'; // Matches backend
-
   const fetchUsers = async () => {
     setError('');
     try {
-      const res = await apiFetch('/admin/users', {
-        headers: {
-          'X-Admin-Secret': ADMIN_SECRET
-        }
-      });
+      const res = await apiFetch('/admin/users');
       if (!res.ok) throw new Error('Failed to fetch users');
       const data = await res.json();
       setUsers(data.users || []);

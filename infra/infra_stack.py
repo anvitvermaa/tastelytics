@@ -175,7 +175,8 @@ class TastelyticsStack(Stack):
             rest_api_name="Tastelytics Service",
             default_cors_preflight_options=apigw.CorsOptions(
                 allow_origins=apigw.Cors.ALL_ORIGINS,
-                allow_methods=apigw.Cors.ALL_METHODS
+                allow_methods=apigw.Cors.ALL_METHODS,
+                allow_headers=["Content-Type", "Authorization"]
             )
         )
 
@@ -266,6 +267,11 @@ class TastelyticsStack(Stack):
         users_count = users_route.add_resource("count")
         users_count.add_method("GET", lambda_integration)
 
+        # Admin Routes
+        admin_resource = api.root.add_resource("admin")
+        admin_users = admin_resource.add_resource("users")
+        admin_users.add_method("GET", lambda_integration, **auth_props)
+
         # Auth Routes
         auth_resource = api.root.add_resource("auth")
         auth_spotify = auth_resource.add_resource("spotify")
@@ -311,3 +317,16 @@ class TastelyticsStack(Stack):
         CfnOutput(self, "CognitoDomain", value=user_pool_domain.domain_name)
         CfnOutput(self, "FrontendUrl", value=cf_url)
         CfnOutput(self, "FrontendBucketName", value=frontend_bucket.bucket_name)
+
+        # Optimize Lambda resource policy size
+        
+        for child in self.node.find_all():
+            if isinstance(child, _lambda.CfnPermission):
+                child.node.scope.node.try_remove_child(child.node.id)
+
+        api_lambda.add_permission(
+            "ApiGatewayWildcard",
+            principal=iam.ServicePrincipal("apigateway.amazonaws.com"),
+            action="lambda:InvokeFunction",
+            source_arn=api.arn_for_execute_api()
+        )

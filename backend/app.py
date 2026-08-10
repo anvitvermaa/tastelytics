@@ -499,11 +499,15 @@ def handler(event, context):
 
         # ─── ADMIN PANEL ───
         elif http_method == 'GET' and path == '/admin/users':
-            # Gate behind a secret header
-            request_headers = event.get('headers') or {}
-            admin_secret = request_headers.get('X-Admin-Secret') or request_headers.get('x-admin-secret', '')
-            if admin_secret != ADMIN_SECRET:
-                return cors_response(403, {"error": "Forbidden"})
+            # Secure Cognito Authorization
+            auth_context = event.get('requestContext', {}).get('authorizer', {})
+            claims = auth_context.get('claims', {})
+            user_email = claims.get('email', '')
+            admin_email = os.environ.get('ADMIN_EMAIL', 'anvitverma1199@gmail.com')
+            
+            if not user_email or user_email.lower() != admin_email.lower():
+                return cors_response(403, {"error": "Forbidden: Admin access only"})
+            
             users_table = dynamodb.Table(USERS_TABLE_NAME)
             try:
                 # Paginate through all users
