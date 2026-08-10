@@ -267,10 +267,7 @@ class TastelyticsStack(Stack):
         users_count = users_route.add_resource("count")
         users_count.add_method("GET", lambda_integration)
 
-        # Admin Routes
-        admin_resource = api.root.add_resource("admin")
-        admin_users = admin_resource.add_resource("users")
-        admin_users.add_method("GET", lambda_integration, **auth_props)
+
 
         # Auth Routes
         auth_resource = api.root.add_resource("auth")

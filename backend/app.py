@@ -497,37 +497,7 @@ def handler(event, context):
             except Exception as e:
                 return cors_response(500, {"error": str(e)})
 
-        # ─── ADMIN PANEL ───
-        elif http_method == 'GET' and path == '/admin/users':
-            # Secure Cognito Authorization
-            auth_context = event.get('requestContext', {}).get('authorizer', {})
-            claims = auth_context.get('claims', {})
-            user_email = claims.get('email', '')
-            admin_email = os.environ.get('ADMIN_EMAIL', 'anvitverma1199@gmail.com')
-            
-            if not user_email or user_email.lower() != admin_email.lower():
-                return cors_response(403, {"error": "Forbidden: Admin access only"})
-            
-            users_table = dynamodb.Table(USERS_TABLE_NAME)
-            try:
-                # Paginate through all users
-                all_users = []
-                scan_kwargs = {
-                    'ProjectionExpression': 'UserID, Email, DisplayName, JoinedAt, ProfileData'
-                }
-                while True:
-                    resp = users_table.scan(**scan_kwargs)
-                    all_users.extend(resp.get('Items', []))
-                    last_key = resp.get('LastEvaluatedKey')
-                    if not last_key:
-                        break
-                    scan_kwargs['ExclusiveStartKey'] = last_key
-                # Sort newest first
-                all_users.sort(key=lambda u: int(u.get('JoinedAt', 0) or 0), reverse=True)
-                return cors_response(200, {"users": all_users, "count": len(all_users)})
-            except Exception as e:
-                print(f"Admin users error: {e}")
-                return cors_response(500, {"error": "Failed to fetch users"})
+
 
         # ─── SPOTIFY OAUTH & TASTE ANALYSIS ───
         elif http_method == 'POST' and path == '/auth/spotify':

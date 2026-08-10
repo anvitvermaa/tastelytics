@@ -5,7 +5,7 @@ import { signInWithRedirect, getCurrentUser } from 'aws-amplify/auth';
 import { Hub } from 'aws-amplify/utils';
 import { PlayCircle, ChevronRight, CheckCircle2 } from 'lucide-react';
 import Dashboard from './Dashboard';
-import AdminPanel from './AdminPanel';
+
 
 const POPULAR_GENRES = ["Pop", "Electronic", "Hip-Hop", "Rock", "R&B", "Jazz", "Classical", "Country", "Indie", "K-Pop", "Metal", "Latin"];
 
@@ -334,7 +334,7 @@ function AppRoutes() {
       <Route path="/" element={authStatus === 'authenticated' ? <Navigate to={(needsOnboarding ? '/onboarding' : '/dashboard') + window.location.search} replace /> : <Login />} />
       <Route path="/onboarding" element={authStatus === 'authenticated' ? (needsOnboarding ? <Onboarding /> : <Navigate to={"/dashboard" + window.location.search} replace />) : <Navigate to="/" replace />} />
       <Route path="/dashboard" element={authStatus === 'authenticated' ? (needsOnboarding ? <Navigate to={"/onboarding" + window.location.search} replace /> : <Dashboard />) : <Navigate to="/" replace />} />
-      <Route path="/admin" element={authStatus === 'authenticated' ? <AdminPanel /> : <Navigate to="/" replace />} />
+
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
